@@ -8,8 +8,14 @@ import logging
 import sys
 
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+nivel_log = logging.DEBUG
 logger_cagada = None
+
+def caca_comun_matrix_a_cadena(matrix):
+    res = ""
+    res = ('\n'.join([''.join(['{:4}'.format(item) for item in row]) 
+      for row in matrix]))
+    return res
 
 
 def huaronmierda_genera_vecinos(matrix, nodo):
@@ -40,7 +46,6 @@ def huaronmierda_bfs(matrix, origen, destino):
             break
         ya_visitados.add(nodo_act)
         vecinos = huaronmierda_genera_vecinos(matrix, nodo_act)
-#        logger_cagada.debug("para el nodo %s los vecinos %s" % (nodo_act, vecinos))
         for vecino in vecinos:
             if(vecino not in ya_visitados):
                 antecesor[vecino] = nodo_act
@@ -72,45 +77,32 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
     return res
 
 def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
-    trampa_directa = False
     costo_vacio_caca = 0
-    costo_vacio_salida = 0
     chosto_brincos = 0
     chosto_total = 0
     chosto_caca_salida = 0
-    vacio_pasa_encima_caca_ruta = 0
-    vacio_pasa_encima_caca_salida = 0
+    if(matrix[caca[0]][caca[1]] != "1"):
+        return -1
+    if(matrix[salida[0]][salida[1]] != "1"):
+        return -1
+                
     if(caca == salida):
         return 0
     ruta_caca_salida = huaronmierda_bfs(matrix, caca, salida)
     tam_ruta_caca_salida = len(ruta_caca_salida)
     logger_cagada.debug("la ruta de caca a sal %s" % ruta_caca_salida)
+    
     if(not tam_ruta_caca_salida):
-        trampa_directa = True
+        return -1
     
     if(ruta_caca_salida[1] != vacio):
-        ruta_vacio_caca = huaronmierda_bfs(matrix, vacio, ruta_caca_salida[1])
+        ruta_vacio_caca = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta_caca_salida[1], caca)
         tam_ruta_vacio_caca = len(ruta_vacio_caca)
         logger_cagada.debug("la ruta del vacio a la caca %s" % ruta_vacio_caca)
         if(not tam_ruta_vacio_caca):
             costo_vacio_caca = costo_trampa
         else:
             costo_vacio_caca = tam_ruta_vacio_caca - 1
-            if(caca in ruta_vacio_caca):
-                ruta_vacio_caca_brincando = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta_caca_salida[1], caca)
-                tam_ruta_vacio_caca_brincando = len(ruta_vacio_caca_brincando)
-                if(not tam_ruta_vacio_caca_brincando):
-                    costo_vacio_caca_brincando = costo_trampa
-                else:
-                    costo_vacio_caca_brincando = tam_ruta_vacio_caca_brincando - 1
-                
-                if(costo_vacio_caca + 1 >= costo_vacio_caca_brincando):
-                    tam_ruta_vacio_caca = tam_ruta_vacio_caca_brincando
-                    ruta_vacio_caca = ruta_vacio_caca_brincando
-                    costo_vacio_caca = costo_vacio_caca_brincando
-                else:
-                    vacio_pasa_encima_caca_ruta = 1
-                    
             
         if(costo_vacio_caca > costo_trampa):
             costo_vacio_caca = costo_trampa
@@ -122,63 +114,24 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         else:
             return costo_vacio_caca + 1
 
-    if(vacio != salida):
-        ruta_vacio_salida = huaronmierda_bfs(matrix, vacio, salida)
-        tam_ruta_vacio_salida = len(ruta_vacio_salida)
-        logger_cagada.debug("la ruta del vacio a la salida %s" % ruta_vacio_salida)
-        if(not tam_ruta_vacio_salida):
-            costo_vacio_salida = costo_trampa
+    
+    for idx_nodo_act, nodo_act in enumerate(ruta_caca_salida[:-2]):
+        nodo_dest = ruta_caca_salida[idx_nodo_act + 2]
+        nodo_brincado = ruta_caca_salida[idx_nodo_act + 1]
+        ruta_brinca = huaronmierda_bfs_sin_nodo(matrix, nodo_act, nodo_dest, nodo_brincado)
+        logger_cagada.debug("la ruta de %s a %s brincando %s es %s" % (nodo_act, nodo_dest, nodo_brincado, ruta_brinca))
+        if(not ruta_brinca):
+            chosto_brincos += costo_trampa
         else:
-            costo_vacio_salida = tam_ruta_vacio_salida - 1
-            if(caca in ruta_vacio_salida):
-                ruta_vacio_salida_brincando = huaronmierda_bfs_sin_nodo(matrix, vacio, salida, caca)
-                tam_ruta_vacio_salida_brincando = len(ruta_vacio_salida_brincando)
-                if(not ruta_vacio_caca_brincando):
-                    costo_vacio_salida_brincando = costo_trampa
-                else:
-                    costo_vacio_salida_brincando = tam_ruta_vacio_salida_brincando - 1
-                
-                if(costo_vacio_salida + 1 >= costo_vacio_salida_brincando):
-                    ruta_vacio_salida = ruta_vacio_salida_brincando
-                    tam_ruta_vacio_salida = tam_ruta_vacio_salida_brincando
-                    costo_vacio_salida = costo_vacio_salida_brincando
-                else:
-                    vacio_pasa_encima_caca_salida = 1
-            
-        if(costo_vacio_salida > costo_trampa):
-            costo_vacio_salida = costo_trampa
-        
+            assert len(ruta_brinca) > 1
+            chosto_brincos += len(ruta_brinca) - 1
     
-    if(not trampa_directa):
-        for idx_nodo_act, nodo_act in enumerate(ruta_caca_salida[:-2]):
-            nodo_dest = ruta_caca_salida[idx_nodo_act + 2]
-            nodo_brincado = ruta_caca_salida[idx_nodo_act + 1]
-            ruta_brinca = huaronmierda_bfs_sin_nodo(matrix, nodo_act, nodo_dest, nodo_brincado)
-            logger_cagada.debug("la ruta de %s a %s brincando %s es %s" % (nodo_act, nodo_dest, nodo_brincado, ruta_brinca))
-            if(not ruta_brinca):
-                chosto_brincos += costo_trampa
-            else:
-                assert len(ruta_brinca) > 1
-                chosto_brincos += len(ruta_brinca) - 1
+    logger_cagada.debug("l costo brincos rosa %u" % chosto_brincos)
 
-        logger_cagada.debug("l costo brincos rosa %u" % chosto_brincos)
-
-        chosto_caca_salida = tam_ruta_caca_salida - 1 + chosto_brincos
-        logger_cagada.debug("de la caca a sal %u" % chosto_caca_salida)
-        logger_cagada.debug("paso por encima vacio %u" % vacio_pasa_encima_caca_ruta)
-        chosto_total = chosto_caca_salida + costo_vacio_caca + vacio_pasa_encima_caca_ruta
+    chosto_caca_salida = tam_ruta_caca_salida - 1 + chosto_brincos
+    logger_cagada.debug("de la caca a sal %u" % chosto_caca_salida)
+    chosto_total = chosto_caca_salida + costo_vacio_caca 
         
-    else:
-        chosto_caca_salida = costo_trampa
-        
-        logger_cagada.debug("paso por encima vacio %u" % vacio_pasa_encima_caca_salida)
-        chosto_total = chosto_caca_salida + costo_vacio_salida + vacio_pasa_encima_caca_salida
-        
-    chosto_total = min([chosto_total, costo_trampa * 2])
-    
-    
-    assert chosto_total <= costo_trampa * 2
-
     return chosto_total
         
 def huaronmierda_main():
@@ -192,7 +145,8 @@ def huaronmierda_main():
             logger_cagada.debug("poniendo caracter %s en %u,%u" % (charac, idx_fila, idx_charac))
             matrix[idx_fila][idx_charac] = charac
     
-    logger_cagada.debug("la matrix es %s" % matrix)
+    logger_cagada.debug("la matrix es\n%s" % caca_comun_matrix_a_cadena(matrix))
+    assert num_cacasos == len(lineas[filas + 1:])
     for cacaso in lineas[filas + 1:]:
         vacio_x, vacio_y, caca_x, caca_y, sal_x, sal_y = [int(x) for x in cacaso.strip().split(" ")]
         vacio = (vacio_x - 1, vacio_y - 1)

@@ -2,3 +2,7 @@
 src/huaron/shit
 
 src/huaron/mierda
+
+*.swp
+
+src/huaron/ass.py

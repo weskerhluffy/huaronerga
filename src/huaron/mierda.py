@@ -17,7 +17,112 @@ def caca_comun_matrix_a_cadena(matrix):
       for row in matrix]))
     return res
 
-
+def huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados):
+    num_filas = len(matrix)
+    num_cols = len(matrix[0])
+#    movimientos_alrededor = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
+    arriba = [(-1, 0), (-1, 1), (-1, -1)]
+    abajo = [(1, 1), (1, 0), (1, -1)]
+    izq = [ (1, -1), (0, -1), (-1, -1)]
+    der = [(-1, 1), (0, 1), (1, 1)]
+    for idx_y, fila in enumerate(matrix):
+        for idx_x, columna in enumerate(fila):
+            eliminar_cuadrito = False
+            continuar_validacion = True
+            idx_arriba = 0
+            idx_abajo = 1
+            idx_izq = 2
+            idx_der = 3
+            blokeado_lado = [False, False, False, False]
+            nombres_lados = ["arriba", "abajo", "izq", "der"]
+            
+            if((idx_y, idx_x) in ignorados):
+                logger_cagada.debug("no se puede eliminar %u,%u x q esta en lista de ignorado" % (idx_y, idx_x))
+                continue
+            
+            for idx_lado, lado in enumerate([arriba, abajo, izq, der]):
+                for pos_lado in lado:
+                    pos_y = idx_y + pos_lado[0]
+                    pos_x = idx_x + pos_lado[1]
+                    if(pos_y < 0 or pos_y >= num_filas):
+                        logger_cagada.debug("en lado %s esta blokeado por estar en los limites y" % nombres_lados[idx_lado])
+#                        blokeado_lado[idx_lado] = True
+                        break
+                    if(pos_x < 0 or pos_x >= num_cols):
+                        logger_cagada.debug("en lado %s esta blokeado por estar en los limites x" % nombres_lados[idx_lado])
+#                        blokeado_lado[idx_lado] = True
+                        break
+                    if(matrix[pos_y][pos_x] != "1"):
+                        logger_cagada.debug("en %u,%u  de valor %s el lado %s esta blokeado por ser fijo el cuadro %u,%u de valor %s" % (idx_y, idx_x, matrix[idx_y][idx_x], nombres_lados[idx_lado], pos_y, pos_x, matrix[pos_y][pos_x]))
+                        blokeado_lado[idx_lado] = True
+                        break
+                    
+                logger_cagada.debug("en %u,%u el lado %s esta blokeado %s" % (idx_y, idx_x, nombres_lados[idx_lado], blokeado_lado[idx_lado]))
+            
+            if(num_cols > 1 and num_filas > 1):
+                if(idx_x == idx_y and not idx_x):
+                    if(matrix[idx_y + 1][idx_x + 1] != "1"):
+                        logger_cagada.debug("esquina izq arriba tiene blokeo abajo der")
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                if(idx_x == num_cols - 1 and idx_y == num_filas - 1):
+                    if(matrix[idx_y - 1][idx_x - 1] != "1"):
+                        logger_cagada.debug("esquina der abajo tiene blokeo arriba izq")
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                if(idx_x == num_cols - 1 and not idx_y): 
+                    if(matrix[idx_y + 1][idx_x - 1] != "1"):
+                        logger_cagada.debug("esq der arriba tiene blokeo abajo izq")
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                if(idx_y == num_filas - 1 and not idx_x):
+                    if(matrix[idx_y - 1][idx_x + 1] != "1"):
+                        logger_cagada.debug("esq izq abajo tiene blokeo arriba der")
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                
+            if(continuar_validacion):
+                if(not idx_y):
+                    if(num_filas > 1 and matrix[1][idx_x] != "1"):
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                    
+                if(not idx_x):
+                    if(num_cols > 1 and matrix[idx_y][1] != "1"):
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                
+                if(idx_y == num_filas - 1):
+                    if(num_filas > 1 and matrix[idx_y - 1][idx_x] != "1"):
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+                    
+                if(idx_x == num_cols - 1):
+                    if(num_cols > 1 and matrix[idx_y][idx_x - 1] != "1"):
+                        eliminar_cuadrito = True
+                    continuar_validacion = False
+            
+            if(continuar_validacion):
+                if(blokeado_lado[idx_arriba] and blokeado_lado[idx_abajo]):
+                    logger_cagada.debug("cuadro %u,%u sera eliminado, arriba i abajo frankeado" % (idx_y, idx_x))
+                    eliminar_cuadrito = True
+                    
+                if(blokeado_lado[idx_izq] and blokeado_lado[idx_der]):
+                    logger_cagada.debug("cuadro %u,%u sera eliminado, izq y der frankeado" % (idx_y, idx_x))
+                    eliminar_cuadrito = True
+            
+            if(eliminar_cuadrito):
+                eliminados.append((idx_y, idx_x))
+                
+    for pos in eliminados:
+        matrix[pos[0]][pos[1]] = "X"
+                
+def huaronmierda_restaura_cuellos_botella(matrix, eliminados):
+    for pos in eliminados:
+        matrix[pos[0]][pos[1]] = "1"
+        logger_cagada.debug("restaurada pos %u,%u" % (pos[0], pos[1]))
+            
+            
 def huaronmierda_genera_vecinos(matrix, nodo):
     POSIBLES_MOVIMIENTOS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     tam_x = len(matrix[0])
@@ -61,7 +166,7 @@ def huaronmierda_bfs(matrix, origen, destino):
             else:
                 nodo_act = None
 
-    logger_cagada.debug("la ruta es %s" % ruta)
+    logger_cagada.debug("la ruta de %s a %s es %s" % (origen, destino, ruta))
     
     return ruta
 
@@ -88,6 +193,12 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
                 
     if(caca == salida):
         return 0
+    
+    eliminados = []
+    ignorados = [caca, salida, vacio]
+    huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados)
+    logger_cagada.debug("despues de eliminar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
+    logger_cagada.debug("calculando ruta de caca a salida")
     ruta_caca_salida = huaronmierda_bfs(matrix, caca, salida)
     tam_ruta_caca_salida = len(ruta_caca_salida)
     logger_cagada.debug("la ruta de caca a sal %s" % ruta_caca_salida)

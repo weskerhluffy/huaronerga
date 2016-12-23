@@ -184,43 +184,12 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
     
     return res
 
-def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
-    costo_vacio_caca = 0
+def huaronmierda_calcula_chosto_real(matrix, ruta, caca, salida, vacio, costo_trampa):
     chosto_brincos = 0
-    chosto_total = 0
-    chosto_caca_salida = 0
-    if(matrix[caca[0]][caca[1]] != "1"):
-        return -1
-    if(matrix[salida[0]][salida[1]] != "1"):
-        return -1
-                
-    if(caca == salida):
-        return 0
-    
-    eliminados = []
-    ignorados = [caca, salida, vacio]
-    huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados)
-    logger_cagada.debug("despues de eliminar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
-    logger_cagada.debug("calculando ruta de caca a salida sin cuellos")
-    ruta_caca_salida_sin_cuellos = huaronmierda_bfs(matrix, caca, salida)
-    tam_ruta_caca_salida_sin_cuellos = len(ruta_caca_salida_sin_cuellos)
-    logger_cagada.debug("la ruta de caca a sal sin cuellos %s" % ruta_caca_salida_sin_cuellos)
-    
-    return -1
-    
-    huaronmierda_restaura_cuellos_botella(matrix, eliminados)
-    logger_cagada.debug("despues de restaurar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
-    
-    logger_cagada.debug("calculando ruta de caca a salida")
-    ruta_caca_salida = huaronmierda_bfs(matrix, caca, salida)
-    tam_ruta_caca_salida = len(ruta_caca_salida)
-    logger_cagada.debug("la ruta de caca a sal %s" % ruta_caca_salida)
-    
-    if(not tam_ruta_caca_salida):
-        return -1
-    
-    if(ruta_caca_salida[1] != vacio):
-        ruta_vacio_caca = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta_caca_salida[1], caca)
+    costo_vacio_caca = 0
+    tam_ruta = len(ruta)
+    if(ruta[1] != vacio):
+        ruta_vacio_caca = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta[1], caca)
         tam_ruta_vacio_caca = len(ruta_vacio_caca)
         logger_cagada.debug("la ruta del vacio a la caca %s" % ruta_vacio_caca)
         if(not tam_ruta_vacio_caca):
@@ -231,17 +200,17 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         if(costo_vacio_caca > costo_trampa):
             costo_vacio_caca = costo_trampa
     
-    if(ruta_caca_salida[1] == salida):
-        assert tam_ruta_caca_salida == 2
+    if(ruta[1] == salida):
+        assert tam_ruta == 2
         if(salida == vacio):
             return 1
         else:
             return costo_vacio_caca + 1
 
     
-    for idx_nodo_act, nodo_act in enumerate(ruta_caca_salida[:-2]):
-        nodo_dest = ruta_caca_salida[idx_nodo_act + 2]
-        nodo_brincado = ruta_caca_salida[idx_nodo_act + 1]
+    for idx_nodo_act, nodo_act in enumerate(ruta[:-2]):
+        nodo_dest = ruta[idx_nodo_act + 2]
+        nodo_brincado = ruta[idx_nodo_act + 1]
         ruta_brinca = huaronmierda_bfs_sin_nodo(matrix, nodo_act, nodo_dest, nodo_brincado)
         logger_cagada.debug("la ruta de %s a %s brincando %s es %s" % (nodo_act, nodo_dest, nodo_brincado, ruta_brinca))
         if(not ruta_brinca):
@@ -252,9 +221,50 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     
     logger_cagada.debug("l costo brincos rosa %u" % chosto_brincos)
 
-    chosto_caca_salida = tam_ruta_caca_salida - 1 + chosto_brincos
+    chosto_caca_salida = tam_ruta - 1 + chosto_brincos
     logger_cagada.debug("de la caca a sal %u" % chosto_caca_salida)
     chosto_total = chosto_caca_salida + costo_vacio_caca 
+    
+    return chosto_total
+
+def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
+    chosto_total = 0
+    chosto_cuellos = sys.maxsize
+    chosto_sin_cuellos = sys.maxsize
+    eliminados = []
+    ignorados = []
+    if(matrix[caca[0]][caca[1]] != "1"):
+        return sys.maxsize
+    if(matrix[salida[0]][salida[1]] != "1"):
+        return sys.maxsize
+                
+    if(caca == salida):
+        return 0
+    
+    ignorados = [caca, salida, vacio]
+    huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados)
+    logger_cagada.debug("despues de eliminar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
+    logger_cagada.debug("calculando ruta de caca a salida sin cuellos")
+    ruta_caca_salida_sin_cuellos = huaronmierda_bfs(matrix, caca, salida)
+    tam_ruta_caca_salida_sin_cuellos = len(ruta_caca_salida_sin_cuellos)
+    logger_cagada.debug("la ruta de caca a sal sin cuellos %s" % ruta_caca_salida_sin_cuellos)
+    
+    if(tam_ruta_caca_salida_sin_cuellos):
+        assert tam_ruta_caca_salida_sin_cuellos > 1, "el tam de ruta sin cuellos es %u" % tam_ruta_caca_salida_sin_cuellos
+        chosto_sin_cuellos = huaronmierda_calcula_chosto_real(matrix, ruta_caca_salida_sin_cuellos, caca, salida, vacio, costo_trampa)
+    
+    huaronmierda_restaura_cuellos_botella(matrix, eliminados)
+    logger_cagada.debug("despues de restaurar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
+    logger_cagada.debug("calculando ruta de caca a salida")
+    ruta_caca_salida = huaronmierda_bfs(matrix, caca, salida)
+    tam_ruta_caca_salida = len(ruta_caca_salida)
+    logger_cagada.debug("la ruta de caca a sal %s" % ruta_caca_salida)
+    
+    if(tam_ruta_caca_salida):
+        assert tam_ruta_caca_salida > 1, "el tam de ruta con cuellos es %u" % tam_ruta_caca_salida
+        chosto_cuellos = huaronmierda_calcula_chosto_real(matrix, ruta_caca_salida, caca, salida, vacio, costo_trampa)
+    
+    chosto_total = min([chosto_sin_cuellos, chosto_cuellos])
         
     return chosto_total
         
@@ -280,6 +290,8 @@ def huaronmierda_main():
         logger_cagada.debug("con el caso vacio %s,caca %s y salida %s" % (vacio, caca, sal))
         
         chosto = huaronmierda_core(matrix, caca, sal, vacio, costo_trampa)
+        if(chosto == sys.maxsize):
+            chosto = -1
         
         logger_cagada.debug("el agosto al chosto %u" % (chosto))
         print(chosto)

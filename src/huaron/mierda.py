@@ -2,6 +2,7 @@
 Created on 13/11/2016
 
 @author: ernesto
+
 '''
 import queue
 import logging
@@ -16,115 +17,6 @@ def caca_comun_matrix_a_cadena(matrix):
     res = ('\n'.join([''.join(['{:4}'.format(item) for item in row]) 
       for row in matrix]))
     return res
-
-def huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados):
-    num_filas = len(matrix)
-    num_cols = len(matrix[0])
-#    movimientos_alrededor = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
-
-    if(num_cols < 2 or num_filas < 2):
-        return
-    
-    arriba = [(-1, 0), (-1, 1), (-1, -1)]
-    abajo = [(1, 1), (1, 0), (1, -1)]
-    izq = [ (1, -1), (0, -1), (-1, -1)]
-    der = [(-1, 1), (0, 1), (1, 1)]
-    for idx_y, fila in enumerate(matrix):
-        for idx_x, columna in enumerate(fila):
-            eliminar_cuadrito = False
-            continuar_validacion = True
-            idx_arriba = 0
-            idx_abajo = 1
-            idx_izq = 2
-            idx_der = 3
-            blokeado_lado = [False, False, False, False]
-            nombres_lados = ["arriba", "abajo", "izq", "der"]
-            
-            if((idx_y, idx_x) in ignorados):
-                logger_cagada.debug("no se puede eliminar %u,%u x q esta en lista de ignorado" % (idx_y, idx_x))
-                continue
-            
-            for idx_lado, lado in enumerate([arriba, abajo, izq, der]):
-                for pos_lado in lado:
-                    pos_y = idx_y + pos_lado[0]
-                    pos_x = idx_x + pos_lado[1]
-                    if(pos_y < 0 or pos_y >= num_filas):
-                        logger_cagada.debug("en lado %s esta blokeado por estar en los limites y" % nombres_lados[idx_lado])
-#                        blokeado_lado[idx_lado] = True
-                        break
-                    if(pos_x < 0 or pos_x >= num_cols):
-                        logger_cagada.debug("en lado %s esta blokeado por estar en los limites x" % nombres_lados[idx_lado])
-#                        blokeado_lado[idx_lado] = True
-                        break
-                    if(matrix[pos_y][pos_x] != "1"):
-                        logger_cagada.debug("en %u,%u  de valor %s el lado %s esta blokeado por ser fijo el cuadro %u,%u de valor %s" % (idx_y, idx_x, matrix[idx_y][idx_x], nombres_lados[idx_lado], pos_y, pos_x, matrix[pos_y][pos_x]))
-                        blokeado_lado[idx_lado] = True
-                        break
-                    
-                logger_cagada.debug("en %u,%u el lado %s esta blokeado %s" % (idx_y, idx_x, nombres_lados[idx_lado], blokeado_lado[idx_lado]))
-            
-            if(idx_x == idx_y and not idx_x):
-                if(matrix[idx_y + 1][idx_x + 1] != "1"):
-                    logger_cagada.debug("esquina izq arriba tiene blokeo abajo der")
-                    eliminar_cuadrito = True
-                continuar_validacion = False
-            if(idx_x == num_cols - 1 and idx_y == num_filas - 1):
-                if(matrix[idx_y - 1][idx_x - 1] != "1"):
-                    logger_cagada.debug("esquina der abajo tiene blokeo arriba izq")
-                    eliminar_cuadrito = True
-                continuar_validacion = False
-            if(idx_x == num_cols - 1 and not idx_y): 
-                if(matrix[idx_y + 1][idx_x - 1] != "1"):
-                    logger_cagada.debug("esq der arriba tiene blokeo abajo izq")
-                    eliminar_cuadrito = True
-                continuar_validacion = False
-            if(idx_y == num_filas - 1 and not idx_x):
-                if(matrix[idx_y - 1][idx_x + 1] != "1"):
-                    logger_cagada.debug("esq izq abajo tiene blokeo arriba der")
-                    eliminar_cuadrito = True
-                continuar_validacion = False
-            
-            if(continuar_validacion):
-                if(not idx_y):
-                    if(matrix[1][idx_x] != "1"):
-                        eliminar_cuadrito = True
-                    continuar_validacion = False
-                    
-                if(not idx_x):
-                    if(matrix[idx_y][1] != "1"):
-                        eliminar_cuadrito = True
-                    continuar_validacion = False
-                
-                if(idx_y == num_filas - 1):
-                    if(matrix[idx_y - 1][idx_x] != "1"):
-                        eliminar_cuadrito = True
-                    continuar_validacion = False
-                    
-                if(idx_x == num_cols - 1):
-                    if(matrix[idx_y][idx_x - 1] != "1"):
-                        eliminar_cuadrito = True
-                    continuar_validacion = False
-            
-            if(continuar_validacion):
-                if(matrix[idx_y - 1][idx_x] != "1" and blokeado_lado[idx_abajo]):
-                    logger_cagada.debug("cuadro %u,%u sera eliminado, arriba i abajo frankeado" % (idx_y, idx_x))
-                    eliminar_cuadrito = True
-                    
-                if(matrix[idx_y][idx_x - 1] != "1" and blokeado_lado[idx_der]):
-                    logger_cagada.debug("cuadro %u,%u sera eliminado, izq y der frankeado" % (idx_y, idx_x))
-                    eliminar_cuadrito = True
-            
-            if(eliminar_cuadrito):
-                eliminados.append((idx_y, idx_x))
-                
-    for pos in eliminados:
-        matrix[pos[0]][pos[1]] = "X"
-                
-def huaronmierda_restaura_cuellos_botella(matrix, eliminados):
-    for pos in eliminados:
-        matrix[pos[0]][pos[1]] = "1"
-        logger_cagada.debug("restaurada pos %u,%u" % (pos[0], pos[1]))
-            
             
 def huaronmierda_genera_vecinos(matrix, nodo):
     POSIBLES_MOVIMIENTOS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
@@ -177,55 +69,121 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
     nodo_caca_x = nodo_caca[1]
     nodo_caca_y = nodo_caca[0]
     
+    valor_original = matrix[nodo_caca_y][nodo_caca_x] 
+    
     matrix[nodo_caca_y][nodo_caca_x] = "0"
     
     res = huaronmierda_bfs(matrix, origen, destino)
-    matrix[nodo_caca_y][nodo_caca_x] = "1"
+    matrix[nodo_caca_y][nodo_caca_x] = valor_original
     
     return res
 
-def huaronmierda_calcula_chosto_real(matrix, ruta, caca, salida, vacio, costo_trampa):
-    chosto_brincos = 0
-    costo_vacio_caca = 0
-    tam_ruta = len(ruta)
-    if(ruta[1] != vacio):
-        ruta_vacio_caca = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta[1], caca)
-        tam_ruta_vacio_caca = len(ruta_vacio_caca)
-        logger_cagada.debug("la ruta del vacio a la caca %s" % ruta_vacio_caca)
-        if(not tam_ruta_vacio_caca):
-            costo_vacio_caca = costo_trampa
+def huaronmierda_par_a_coordenada(matrix, nodo):
+    tam_caca = len(matrix[0]) - 4
+    return (nodo[0] - 2) * tam_caca + (nodo[1] - 2)
+
+# Casos de esquinados
+# ----------+----------
+# 2222222222|1111111111
+#          2|1
+#          2|1
+#          2|1
+# |4       2|1       3|
+# |4       2|1       3|
+# |4       2|1       3|
+# |4       2|1       3|
+# |44444444 | 33333333|
+# ----------+----------
+# |11111111 | 22222222|
+# |1       3|4       2|
+# |1       3|4       2| 
+# |1       3|4       2| 
+# |1       3|4       2| 
+#          3|4
+#          3|4
+#          3|4
+# 3333333333|4444444444
+# ----------+----------
+#
+
+
+HUARONMIERDA_DIRECCION_VERTICAL = 0
+HUARONMIERDA_DIRECCION_HORIZONTAL = 1
+HUARONMIERDA_DIRECCION_ESQ_1 = 2
+HUARONMIERDA_DIRECCION_ESQ_2 = 3
+HUARONMIERDA_DIRECCION_ESQ_3 = 4
+HUARONMIERDA_DIRECCION_ESQ_4 = 5
+HUARONMIERDA_DIRECCION_FINAL = HUARONMIERDA_DIRECCION_ESQ_4
+def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chostos):
+    factor_destino_x = 0
+    factor_destino_y = 0
+    factor_mastorbo_x = 0
+    factor_mastorbo_y = 0
+    if(direccion == HUARONMIERDA_DIRECCION_VERTICAL):
+        factor_destino_x = 2
+        factor_mastorbo_x = 1
+    else:
+        if(direccion == HUARONMIERDA_DIRECCION_HORIZONTAL):
+            factor_destino_y = 2
+            factor_mastorbo_y = 1
         else:
-            costo_vacio_caca = tam_ruta_vacio_caca - 1
+            if(direccion == HUARONMIERDA_DIRECCION_ESQ_1):
+                factor_destino_x = 1
+                factor_destino_y = 1
+                factor_mastorbo_x = 1
+            else:
+                if(direccion == HUARONMIERDA_DIRECCION_ESQ_2):
+                    factor_destino_x = 1
+                    factor_destino_y = -1
+                    factor_mastorbo_x = 1
+                else:
+                    if(direccion == HUARONMIERDA_DIRECCION_ESQ_3):
+                        factor_destino_x = 1
+                        factor_destino_y = 1
+                        factor_mastorbo_y = 1
+                    else:
+                        assert direccion == HUARONMIERDA_DIRECCION_ESQ_4, "q mierda, la direccion dad es %s" % direccion
+                        factor_destino_x = 1
+                        factor_destino_y = -1
+                        factor_mastorbo_y = -1
             
-        if(costo_vacio_caca > costo_trampa):
-            costo_vacio_caca = costo_trampa
+    matrix_chostos = matrixes_chostos[direccion]
     
-    if(ruta[1] == salida):
-        assert tam_ruta == 2
-        if(salida == vacio):
-            return 1
-        else:
-            return costo_vacio_caca + 1
-
+    destino = (_, _) = (origen[0] + factor_destino_x, origen[1] + factor_destino_y)
+    mastorbo = (_, _) = (origen[0] + factor_mastorbo_x, origen[1] + factor_mastorbo_y)
+    logger_cagada.debug("calculando cohosto de %s a %s con estorbo %s" % (origen, destino, mastorbo))
     
-    for idx_nodo_act, nodo_act in enumerate(ruta[:-2]):
-        nodo_dest = ruta[idx_nodo_act + 2]
-        nodo_brincado = ruta[idx_nodo_act + 1]
-        ruta_brinca = huaronmierda_bfs_sin_nodo(matrix, nodo_act, nodo_dest, nodo_brincado)
-        logger_cagada.debug("la ruta de %s a %s brincando %s es %s" % (nodo_act, nodo_dest, nodo_brincado, ruta_brinca))
-        if(not ruta_brinca):
-            chosto_brincos += costo_trampa
-        else:
-            assert len(ruta_brinca) > 1
-            chosto_brincos += len(ruta_brinca) - 1
+    if(matrix[destino[0]][destino[1]] != '1'):
+        logger_cagada.debug("el destino %s,%s es una mierda, no c puede proceder" % (destino))
+        return
     
-    logger_cagada.debug("l costo brincos rosa %u" % chosto_brincos)
-
-    chosto_caca_salida = tam_ruta - 1 + chosto_brincos
-    logger_cagada.debug("de la caca a sal %u" % chosto_caca_salida)
-    chosto_total = chosto_caca_salida + costo_vacio_caca 
+    ruta_mierda = huaronmierda_bfs_sin_nodo(matrix, origen, destino, mastorbo)
     
-    return chosto_total
+    logger_cagada.debug("la rutal resultante %s" % ruta_mierda)
+#    logger_cagada.debug("la matrix chostos\n%s" % (caca_comun_matrix_a_cadena(matrix_chostos)))
+    
+    if(ruta_mierda):
+        tam_ruta = len(ruta_mierda)
+        logger_cagada.debug("chosto de %s(%s) a %s(%s) calculado " % (huaronmierda_par_a_coordenada(matrix, origen), origen, huaronmierda_par_a_coordenada(matrix, destino), destino))
+        matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = tam_ruta - 1
+        matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = tam_ruta - 1
+    else:
+        matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = chosto_brinco
+        matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = chosto_brinco
+        
+        
+def huaronmierda_crea_matrix_rodeada(matrix):
+    tam_fila_matrix = len(matrix[0])
+    nueva_mierda = [['0'] * (tam_fila_matrix + 4)]
+    nueva_mierda.append(['0'] * (tam_fila_matrix + 4))
+    
+    for fila in matrix:
+        nueva_mierda.append(['0', '0'] + fila + ['0', '0'])
+        logger_cagada.debug("la fila q c anadio %s" % (nueva_mierda[-1]))
+    
+    nueva_mierda.append(['0'] * (tam_fila_matrix + 4))
+    nueva_mierda.append(['0'] * (tam_fila_matrix + 4))
+    return nueva_mierda
 
 def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     chosto_total = 0
@@ -233,6 +191,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     chosto_sin_cuellos = sys.maxsize
     eliminados = []
     ignorados = []
+    matrixes_chostos = []
     if(matrix[caca[0]][caca[1]] != "1"):
         return sys.maxsize
     if(matrix[salida[0]][salida[1]] != "1"):
@@ -242,29 +201,20 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         return 0
     
     ignorados = [caca, salida, vacio]
-    huaronmierda_elimina_cuellos_botella(matrix, eliminados, ignorados)
-    logger_cagada.debug("despues de eliminar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
-    logger_cagada.debug("calculando ruta de caca a salida sin cuellos")
-    ruta_caca_salida_sin_cuellos = huaronmierda_bfs(matrix, caca, salida)
-    tam_ruta_caca_salida_sin_cuellos = len(ruta_caca_salida_sin_cuellos)
-    logger_cagada.debug("la ruta de caca a sal sin cuellos %s" % ruta_caca_salida_sin_cuellos)
+    matrix_rodeada = huaronmierda_crea_matrix_rodeada(matrix)
+    logger_cagada.debug("la matrix rodead\n%s" % caca_comun_matrix_a_cadena(matrix_rodeada))
     
-    if(tam_ruta_caca_salida_sin_cuellos):
-        assert tam_ruta_caca_salida_sin_cuellos > 1, "el tam de ruta sin cuellos es %u" % tam_ruta_caca_salida_sin_cuellos
-        chosto_sin_cuellos = huaronmierda_calcula_chosto_real(matrix, ruta_caca_salida_sin_cuellos, caca, salida, vacio, costo_trampa)
+    for direccion in range(HUARONMIERDA_DIRECCION_FINAL + 1):
+        nueva_mierda = []
+        for _ in range(len(matrix) * len(matrix[0])):
+            nueva_mierda.append([0] * len(matrix[0]) * len(matrix))
+        matrixes_chostos.append(nueva_mierda)
+        for idx_fila, fila in enumerate(matrix, 2):
+            for idx_col, _ in enumerate(fila, 2):
+                huaronmierda_precaca((idx_fila , idx_col), matrix_rodeada, costo_trampa, direccion , matrixes_chostos)
     
-    huaronmierda_restaura_cuellos_botella(matrix, eliminados)
-    logger_cagada.debug("despues de restaurar cuellos de botella\n%s", caca_comun_matrix_a_cadena(matrix))
-    logger_cagada.debug("calculando ruta de caca a salida")
-    ruta_caca_salida = huaronmierda_bfs(matrix, caca, salida)
-    tam_ruta_caca_salida = len(ruta_caca_salida)
-    logger_cagada.debug("la ruta de caca a sal %s" % ruta_caca_salida)
-    
-    if(tam_ruta_caca_salida):
-        assert tam_ruta_caca_salida > 1, "el tam de ruta con cuellos es %u" % tam_ruta_caca_salida
-        chosto_cuellos = huaronmierda_calcula_chosto_real(matrix, ruta_caca_salida, caca, salida, vacio, costo_trampa)
-    
-    chosto_total = min([chosto_sin_cuellos, chosto_cuellos])
+        logger_cagada.debug("la matrix de direccion %s kedo:\n%s" % (direccion, caca_comun_matrix_a_cadena(nueva_mierda)))
+        
         
     return chosto_total
         

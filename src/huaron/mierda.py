@@ -34,7 +34,26 @@ class PriorityQueue(object):
         self.entry_finder = dict({i[-1]: i for i in heap})
         logger_cagada.debug("el finder es %s" % self.entry_finder)
         self.REMOVED = sys.maxsize
-
+        
+    def es_menor_entrada_1(self, entrada_1, entrada_2):
+        resul = False
+        prio_1 = entrada_1[0]
+        prio_2 = entrada_2[0]
+        cagada_1 = entrada_1[1]
+        cagada_2 = entrada_2[1]
+        
+        if(prio_1 == prio_2):
+            if(cagada_1 is self.REMOVED):
+                resul = False 
+            else:
+                if(cagada_2 is self.REMOVED):
+                    resul = True
+                else:
+                    resul = cagada_1 < cagada_2
+        else:
+            resul = prio_1 < prio_2
+        return resul
+        
     def _siftdown(self, heap, startpos, pos):
         newitem = heap[pos]
         logger_cagada.debug("el nuevo meirda %s" % newitem)
@@ -42,7 +61,8 @@ class PriorityQueue(object):
             parentpos = (pos - 1) >> 1
             parent = heap[parentpos]
             logger_cagada.debug("q pedo con %s %s" % (newitem, parent))
-            if (newitem[1] is not self.REMOVED  and (parent[1] is self.REMOVED or newitem < parent)):
+#            if (newitem[1] is not self.REMOVED  and (parent[1] is self.REMOVED or newitem < parent)):
+            if (self.es_menor_entrada_1(newitem, parent)):
                 heap[pos] = parent
                 pos = parentpos
                 continue
@@ -68,6 +88,7 @@ class PriorityQueue(object):
         self.heappush(self.heap, entry)
         logger_cagada.debug("el finde aora es %s" % self.entry_finder)
         logger_cagada.debug("el heap aora es %s" % self.heap)
+        self.valida_caca()
 
     def delete(self, node):
         """Instead of breaking invariant by direct removal of an entry, mark
@@ -92,7 +113,8 @@ class PriorityQueue(object):
             # Set childpos to index of smaller child.
             rightpos = childpos + 1
             logger_cagada.debug("q la chingada %s %s" % (heap[childpos], heap[rightpos] if rightpos < endpos else "Nada"))
-            if rightpos < endpos and (heap[rightpos][1] is not self.REMOVED and (heap[childpos][1] is self.REMOVED or not heap[childpos] < heap[rightpos])):
+#            if rightpos < endpos and (heap[rightpos][1] is not self.REMOVED and (heap[childpos][1] is self.REMOVED or not heap[childpos] < heap[rightpos])):
+            if rightpos < endpos and not self.es_menor_entrada_1(heap[childpos], heap[rightpos]):
                 childpos = rightpos
             # Move the smaller child up.
             heap[pos] = heap[childpos]
@@ -111,6 +133,7 @@ class PriorityQueue(object):
             heap[0] = lastelt
             self._siftup(heap, 0)
             return returnitem
+        self.valida_caca()
         return lastelt
 
     def pop(self):
@@ -130,6 +153,31 @@ class PriorityQueue(object):
         self.insert(nodo, nueva_prioridad)
 
 
+    def valida_caca(self, idx=0, valor_padre=0):
+        tam_caca = len(self.heap)
+        if(not self.heap):
+            return
+        entrada = self.heap[idx]
+        nuevo_valor_padre = 0
+        valor_propio = 0
+        logger_cagada.debug("validando nodo %s(%u)" % (entrada, idx))
+        if(entrada[1] is self.REMOVED):
+            nuevo_valor_padre = valor_padre
+            valor_propio = self.REMOVED
+        else:
+            nuevo_valor_padre = entrada[0]
+            valor_propio = nuevo_valor_padre
+            assert valor_padre <= valor_propio, "puta mierda, en nodo %s(%u) se encontro una inconsistencia, valor padre %s, valor propio %s" % (entrada, idx, valor_padre, valor_propio)
+            
+        idx_hijo_izq = idx * 2 + 1
+        idx_hijo_der = idx_hijo_izq + 1
+        
+        if(idx_hijo_izq < tam_caca):
+            self.valida_caca(idx_hijo_izq, nuevo_valor_padre)
+            
+        if(idx_hijo_der < tam_caca):
+            self.valida_caca(idx_hijo_der, nuevo_valor_padre)
+        
             
             
             
@@ -273,7 +321,7 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
     logger_cagada.debug("calculando cohosto de %s a %s con estorbo %s" % (origen, destino, mastorbo))
     
     if(matrix[destino[0]][destino[1]] != '1'):
-        logger_cagada.debug("el destino %s,%s es una mierda, no c puede proceder" % (destino))
+        logger_cagada.debug("el destino (%s, %s) es una mierda, no c puede proceder" % (destino))
         return
     
     ruta_mierda = huaronmierda_bfs_sin_nodo(matrix, origen, destino, mastorbo)
@@ -281,14 +329,16 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
     logger_cagada.debug("la rutal resultante %s" % ruta_mierda)
 #    logger_cagada.debug("la matrix chostos\n%s" % (caca_comun_matrix_a_cadena(matrix_chostos)))
     
+    chosto_mierda = 0
     if(ruta_mierda):
         tam_ruta = len(ruta_mierda)
-        logger_cagada.debug("chosto de %s(%s) a %s(%s) calculado " % (huaronmierda_par_a_coordenada(matrix, origen), origen, huaronmierda_par_a_coordenada(matrix, destino), destino))
-        matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = tam_ruta - 1
-        matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = tam_ruta - 1
+        chosto_mierda = tam_ruta - 1
     else:
-        matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = chosto_brinco
-        matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = chosto_brinco
+        chosto_mierda = chosto_brinco
+        
+    matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = chosto_mierda
+    matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = chosto_mierda
+    logger_cagada.debug("chosto de %s(%s) a %s(%s) calculado es %s" % (huaronmierda_par_a_coordenada(matrix, origen), (origen[0] - 2, origen[1] - 2), huaronmierda_par_a_coordenada(matrix, destino), (destino[0] - 2, destino[1] - 2), chosto_brinco))
         
         
 def huaronmierda_crea_matrix_rodeada(matrix):
@@ -357,18 +407,19 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
     pq = PriorityQueue()
 #    uncharted = set([i[1] for i in pq.heap])
     shortest_path = {}
-    pq.insert(source, 0)
+#    pq.insert(source, 0)
     predecesores = {}
     
     for idx_fila, fila in enumerate(matrix):
         for idx_col, vale in enumerate(fila):
             if(vale == '1'):
                 pq.insert((idx_fila, idx_col), sys.maxsize)
+                
+    size = len(pq.heap)
     
     logger_cagada.debug("bueno pero q mierda %s" % (type(source)))
     pq.update(source, 0)
             
-    size = len(pq.heap)
     while size > len(processed):
         logger_cagada.debug("size es %u len de proc %u" % (size, len(processed)))
         min_dist, new_node = pq.pop()
@@ -444,6 +495,8 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     distancias_cortas = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos)
     
     logger_cagada.debug("las distancias + cortas %s" % distancias_cortas)
+    
+    chosto_total = distancias_cortas[salida]
         
     return chosto_total
         

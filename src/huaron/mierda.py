@@ -409,6 +409,7 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
     shortest_path = {}
 #    pq.insert(source, 0)
     predecesores = {}
+    ruta_salida = []
     
     for idx_fila, fila in enumerate(matrix):
         for idx_col, vale in enumerate(fila):
@@ -437,6 +438,7 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
                     predecesor_abuelo = predecesores[predecesor_padre]
                     caso_familiar = huaronmierda_determina_caso_predecesor(predecesor_abuelo, predecesor_padre, vecino)
                     chosto = matrixes_chostos[caso_familiar][huaronmierda_par_a_coordenada(matrix, predecesor_abuelo, False)][huaronmierda_par_a_coordenada(matrix, vecino, False)]
+                    chosto += 1
                     logger_cagada.debug("el chosto de mover %s a %s es %s" % (predecesor_abuelo, vecino, chosto))
                     edge_dist = chosto
                 new_dist = 0
@@ -456,16 +458,23 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
                 predecesores[vecino] = new_predecesor
                 pq.insert(vecino, new_dist)
                 
+        logger_cagada.debug("asta aora shotest %s y predecesores %s " % (shortest_path, predecesores))
         
-        logger_cagada.debug("asta aora shotest %s y predecesores %s" % (shortest_path, predecesores))
-    return shortest_path
+    ultimo_puto = destino
+    while(ultimo_puto):
+#        logger_cagada.debug("insertando a la ruta %s aora es %s" % (ultimo_puto, ruta_salida))
+        ruta_salida.insert(0, ultimo_puto)
+        ultimo_puto = predecesores.pop(ultimo_puto, None)
+    
+    logger_cagada.debug("la puta ruta %s" % ruta_salida)
+    
+    if(len(ruta_salida) == 1):
+        ruta_salida = []
+    
+    return shortest_path, ruta_salida
 
 def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     chosto_total = 0
-    chosto_cuellos = sys.maxsize
-    chosto_sin_cuellos = sys.maxsize
-    eliminados = []
-    ignorados = []
     matrixes_chostos = []
     if(matrix[caca[0]][caca[1]] != "1"):
         return sys.maxsize
@@ -475,7 +484,6 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     if(caca == salida):
         return 0
     
-    ignorados = [caca, salida, vacio]
     matrix_rodeada = huaronmierda_crea_matrix_rodeada(matrix)
     logger_cagada.debug("la matrix rodead\n%s" % caca_comun_matrix_a_cadena(matrix_rodeada))
     
@@ -492,11 +500,21 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
 
     
     logger_cagada.debug("el bloke caca-o %s" % (type(caca)))
-    distancias_cortas = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos)
+    distancias_cortas, ruta_caca = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos)
     
     logger_cagada.debug("las distancias + cortas %s" % distancias_cortas)
     
-    chosto_total = distancias_cortas[salida]
+    if(ruta_caca):
+        chosto_cacao = distancias_cortas[salida]
+        ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
+        if(ruta_vacio):
+            chosto_vacio = len(ruta_vacio) - 1
+        else:
+            chosto_vacio = costo_trampa
+        chosto_total = chosto_cacao + chosto_vacio
+    else:
+        chosto_total = -1
+    
         
     return chosto_total
         

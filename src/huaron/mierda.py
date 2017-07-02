@@ -10,7 +10,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+# nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -502,6 +502,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         for _ in range(len(matrix) * len(matrix[0])):
             nueva_mierda.append([0] * len(matrix[0]) * len(matrix))
         matrixes_chostos.append(nueva_mierda)
+        logger_cagada.debug("anadida matriz chostos mide %u x %u" % (len(nueva_mierda[-1]), len(nueva_mierda[-1][0])))
         for idx_fila, fila in enumerate(matrix, 2):
             for idx_col, _ in enumerate(fila, 2):
                 huaronmierda_precaca((idx_fila , idx_col), matrix_rodeada, costo_trampa, direccion , matrixes_chostos)

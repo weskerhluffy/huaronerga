@@ -10,7 +10,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-# nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -243,14 +243,6 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
     
     return res
 
-def huaronmierda_par_a_coordenada(matrix, nodo, matrix_rodeada=True):
-    if(matrix_rodeada):
-        tam_caca = len(matrix[0]) - 4
-        return (nodo[0] - 2) * tam_caca + (nodo[1] - 2)
-    else:
-        tam_caca = len(matrix[0])
-        return (nodo[0]) * tam_caca + (nodo[1])
-
 # Casos de esquinados
 # ----------+----------
 # 2222222222|1111111111
@@ -338,9 +330,8 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
     else:
         chosto_mierda = chosto_brinco
         
-    matrix_chostos[huaronmierda_par_a_coordenada(matrix, origen)][huaronmierda_par_a_coordenada(matrix, destino)] = chosto_mierda
-    matrix_chostos[huaronmierda_par_a_coordenada(matrix, destino)][huaronmierda_par_a_coordenada(matrix, origen)] = chosto_mierda
-    logger_cagada.debug("chosto de %s(%s) a %s(%s) calculado es %s" % (huaronmierda_par_a_coordenada(matrix, origen), (origen[0] - 2, origen[1] - 2), huaronmierda_par_a_coordenada(matrix, destino), (destino[0] - 2, destino[1] - 2), chosto_brinco))
+    matrix_chostos[origen[0] - 2][origen[1] - 2] = chosto_mierda
+    logger_cagada.debug("chosto de %s a %s calculado es %s" % ((origen[0] - 2, origen[1] - 2), (destino[0] - 2, destino[1] - 2), chosto_brinco))
         
         
 def huaronmierda_crea_matrix_rodeada(matrix):
@@ -445,7 +436,9 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
                     predecesor_padre = new_node
                     predecesor_abuelo = predecesores[predecesor_padre]
                     caso_familiar = huaronmierda_determina_caso_predecesor(predecesor_abuelo, predecesor_padre, vecino)
-                    chosto = matrixes_chostos[caso_familiar][huaronmierda_par_a_coordenada(matrix, predecesor_abuelo, False)][huaronmierda_par_a_coordenada(matrix, vecino, False)]
+                    mas_abajo = sorted([predecesor_abuelo, vecino])[0]
+                    logger_cagada.debug("el de mas abajo entre abuelo %s y hijo %s  es %s" % (predecesor_abuelo, vecino, mas_abajo))
+                    chosto = matrixes_chostos[caso_familiar][mas_abajo[0]][mas_abajo[1]]
                     chosto += 1
                     logger_cagada.debug("el chosto de mover %s a %s es %s" % (predecesor_abuelo, vecino, chosto))
                     edge_dist = chosto
@@ -499,15 +492,15 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     
     for direccion in range(HUARONMIERDA_DIRECCION_FINAL + 1):
         nueva_mierda = []
-        for _ in range(len(matrix) * len(matrix[0])):
-            nueva_mierda.append([0] * len(matrix[0]) * len(matrix))
+        for _ in range(len(matrix)):
+            nueva_mierda.append([0] * len(matrix[0]))
         matrixes_chostos.append(nueva_mierda)
-        logger_cagada.debug("anadida matriz chostos mide %u x %u" % (len(nueva_mierda[-1]), len(nueva_mierda[-1][0])))
+        logger_cagada.debug("anadida matriz chostos mide %u x %u" % (len(nueva_mierda), len(nueva_mierda[0])))
         for idx_fila, fila in enumerate(matrix, 2):
             for idx_col, _ in enumerate(fila, 2):
                 huaronmierda_precaca((idx_fila , idx_col), matrix_rodeada, costo_trampa, direccion , matrixes_chostos)
     
-#        logger_cagada.debug("la matrix de direccion %s kedo:\n%s" % (direccion, caca_comun_matrix_a_cadena(nueva_mierda)))
+        logger_cagada.debug("la matrix de direccion %s kedo:\n%s" % (direccion, caca_comun_matrix_a_cadena(nueva_mierda)))
 
     
     logger_cagada.debug("el bloke caca-o %s" % (type(caca)))

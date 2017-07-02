@@ -10,7 +10,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -29,7 +29,9 @@ class PriorityQueue(object):
     def __init__(self, heap=[]):
         """if 'heap' is not empty, make sure it's heapified"""
 
+        logger_cagada.debug("pero si el orig heap %s" % heap)
         heapq.heapify(heap)
+        logger_cagada.debug("a cihnga el heap %s" % heap)
         self.heap = heap
         self.entry_finder = dict({i[-1]: i for i in heap})
         logger_cagada.debug("el finder es %s" % self.entry_finder)
@@ -404,16 +406,19 @@ def huaronmierda_determina_caso_predecesor(abuelo, padre, hijo):
 def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
 
     processed = set()
-    pq = PriorityQueue()
+    # WTF: x q sto s necesario? el heap default es vacio, q mamada
+    pq = PriorityQueue(heap=[])
 #    uncharted = set([i[1] for i in pq.heap])
     shortest_path = {}
 #    pq.insert(source, 0)
     predecesores = {}
     ruta_salida = []
     
+    logger_cagada.debug("oie zhi")
     for idx_fila, fila in enumerate(matrix):
         for idx_col, vale in enumerate(fila):
             if(vale == '1'):
+                logger_cagada.debug("insertando (%s, %s) en pq" % ((idx_fila, idx_col)))
                 pq.insert((idx_fila, idx_col), sys.maxsize)
                 
     size = len(pq.heap)
@@ -425,6 +430,9 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
         logger_cagada.debug("size es %u len de proc %u" % (size, len(processed)))
         min_dist, new_node = pq.pop()
         logger_cagada.debug("mierda min %u node %s" % (min_dist, new_node))
+        if(min_dist == pq.REMOVED):
+            logger_cagada.debug("o mierda, no ai mas camino")
+            break
         processed.add(new_node)
 #        uncharted.remove(new_node)
         shortest_path[new_node] = min_dist
@@ -480,6 +488,8 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         return sys.maxsize
     if(matrix[salida[0]][salida[1]] != "1"):
         return sys.maxsize
+    if(matrix[vacio[0]][vacio[1]] != '1'):
+        return sys.maxsize
                 
     if(caca == salida):
         return 0
@@ -506,14 +516,17 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     
     if(ruta_caca):
         chosto_cacao = distancias_cortas[salida]
-        ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
-        if(ruta_vacio):
-            chosto_vacio = len(ruta_vacio) - 1
+        if(vacio != ruta_caca[1]):
+            ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
+            if(ruta_vacio):
+                chosto_vacio = len(ruta_vacio) - 1
+            else:
+                chosto_vacio = costo_trampa
         else:
-            chosto_vacio = costo_trampa
+            chosto_vacio = 0
         chosto_total = chosto_cacao + chosto_vacio
     else:
-        chosto_total = -1
+        chosto_total = sys.maxsize
     
         
     return chosto_total

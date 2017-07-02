@@ -3,6 +3,54 @@ Created on 13/11/2016
 
 @author: ernesto
 
+casos vacio:
+    1 separado
+    2 distancia normal
+    3 a un lado no en ruta
+    4 a un lado en ruta
+    5 en salida
+    6 mas barato mover
+    7 mas barato brincar
+
+casos salida:
+    1 separada
+    2 distancia normal
+    3 a traves de tunel
+    4 mas barato tomar tunel
+    5 mas barato dar vueltesota
+    6 al lado
+    7 encima
+    
+casos cacao:
+
+hechos:
+    caca10.txt
+    v1-s1
+    v1-s2
+    v1-s3
+    v1-s6
+    v1-s7
+    v2-s1
+    v2-s2
+    v2-s3
+    v2-s6
+    v2-s7
+    v3-s1
+    v3-s2
+    v3-s3
+    v3-s6
+    v3-s7
+    v4-s1
+    v4-s2
+    v4-s3
+    v4-s6
+    v4-s7
+    v5-s1
+    v5-s2
+    v5-s3
+    v5-s6
+    v5-s7
+
 '''
 import queue
 import logging

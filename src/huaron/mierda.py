@@ -50,6 +50,20 @@ hechos:
     v5-s3
     v5-s6
     v5-s7
+    caca11.txt
+    v6-s1
+    v6-s2
+    v6-s3
+    v6-s5
+    v6-s6
+    v6-s7
+    caca12.txt
+    v7-s1
+    v7-s2
+    v7-s3
+    v7-s4
+    v7-s6
+    v7-s7
 
 '''
 import queue

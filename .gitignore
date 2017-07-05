@@ -10,3 +10,5 @@ src/huaron/ass.py
 *.swp
 
 *.swp
+
+*.swo

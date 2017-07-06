@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-ivel_log = logging.DEBUG
+nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -569,6 +569,9 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     distancias_cortas, ruta_caca = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos)
     
     logger_cagada.debug("las distancias + cortas %s" % distancias_cortas)
+    for mierda in ruta_caca:
+        chosto_nodo = distancias_cortas[mierda]
+        logger_cagada.debug("la distancia de %s a %s es %s" % (caca, mierda, chosto_nodo))
     
     if(ruta_caca):
         chosto_cacao = distancias_cortas[salida]
@@ -589,7 +592,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
         
 def huaronmierda_main():
     lineas_sin_dep = list(sys.stdin)
-    lineas=list(filter(lambda linea:linea[0]!="#",lineas_sin_dep))
+    lineas = list(filter(lambda linea:linea[0] != "#", lineas_sin_dep))
     filas, columnas, costo_trampa, num_cacasos = [int(x) for x in lineas[0].strip().split(" ")]
     matrix = [["" for _ in range(columnas)] for _ in range(filas)]
     logger_cagada.debug("mat vacia %s" % matrix)

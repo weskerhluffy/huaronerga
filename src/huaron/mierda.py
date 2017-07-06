@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+ivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -588,7 +588,8 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     return chosto_total
         
 def huaronmierda_main():
-    lineas = list(sys.stdin)
+    lineas_sin_dep = list(sys.stdin)
+    lineas=list(filter(lambda linea:linea[0]!="#",lineas_sin_dep))
     filas, columnas, costo_trampa, num_cacasos = [int(x) for x in lineas[0].strip().split(" ")]
     matrix = [["" for _ in range(columnas)] for _ in range(filas)]
     logger_cagada.debug("mat vacia %s" % matrix)

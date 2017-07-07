@@ -576,8 +576,9 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     if(ruta_caca):
         chosto_cacao = distancias_cortas[salida]
         if(vacio != ruta_caca[1]):
-            ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
-            if(ruta_vacio):
+#            ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
+            ruta_vacio = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta_caca[1], caca)
+            if(ruta_vacio and len(ruta_vacio) - 1 < costo_trampa):
                 chosto_vacio = len(ruta_vacio) - 1
             else:
                 chosto_vacio = costo_trampa

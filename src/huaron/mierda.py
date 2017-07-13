@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -539,6 +539,8 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
 def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     chosto_total = 0
     matrixes_chostos = []
+    if(caca == salida):
+        return 0
     if(matrix[caca[0]][caca[1]] != "1"):
         return sys.maxsize
     if(matrix[salida[0]][salida[1]] != "1"):
@@ -546,8 +548,6 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     if(matrix[vacio[0]][vacio[1]] != '1'):
         return sys.maxsize
                 
-    if(caca == salida):
-        return 0
     
     matrix_rodeada = huaronmierda_crea_matrix_rodeada(matrix)
     logger_cagada.debug("la matrix rodead\n%s" % caca_comun_matrix_a_cadena(matrix_rodeada))

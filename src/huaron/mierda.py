@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -80,7 +80,6 @@ def caca_comun_matrix_a_cadena(matrix):
     res = ('\n'.join([''.join(['{:4}'.format(item) for item in row]) 
       for row in matrix]))
     return res
-            
             
             
 class PriorityQueue(object):
@@ -456,14 +455,12 @@ def huaronmierda_determina_caso_predecesor(abuelo, padre, hijo):
     return idx_caso_predecesor
         
 
-def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
+def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chosto_trampa):
 
     processed = set()
     # WTF: x q sto s necesario? el heap default es vacio, q mamada
     pq = PriorityQueue(heap=[])
-#    uncharted = set([i[1] for i in pq.heap])
     shortest_path = {}
-#    pq.insert(source, 0)
     predecesores = {}
     ruta_salida = []
     
@@ -493,7 +490,17 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos):
         for vecino in huaronmierda_genera_vecinos(matrix, new_node):
             if(vecino not in processed):
                 if(new_node == source):
-                    edge_dist = 1
+#                    edge_dist = 1
+                    if(vecino != vacio):
+                        ruta_vacio_hijo = huaronmierda_bfs_sin_nodo(matrix, vacio, vecino, new_node)
+                        if(ruta_vacio_hijo):
+                            edge_dist = len(ruta_vacio_hijo) - 1
+                        else:
+                            edge_dist = chosto_trampa
+                    else:
+                        edge_dist = 0
+                    logger_cagada.debug("el chosto de mover la 1rea vez, o sea de poner el vacio %s" % edge_dist)
+                    edge_dist += 1
                 else:
                     predecesor_padre = new_node
                     predecesor_abuelo = predecesores[predecesor_padre]
@@ -566,7 +573,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
 
     
     logger_cagada.debug("el bloke caca-o %s" % (type(caca)))
-    distancias_cortas, ruta_caca = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos)
+    distancias_cortas, ruta_caca = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos, vacio, costo_trampa)
     
     logger_cagada.debug("las distancias + cortas %s" % distancias_cortas)
     for mierda in ruta_caca:
@@ -575,16 +582,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     
     if(ruta_caca):
         chosto_cacao = distancias_cortas[salida]
-        if(vacio != ruta_caca[1]):
-#            ruta_vacio = huaronmierda_bfs(matrix, vacio, ruta_caca[1])
-            ruta_vacio = huaronmierda_bfs_sin_nodo(matrix, vacio, ruta_caca[1], caca)
-            if(ruta_vacio and len(ruta_vacio) - 1 < costo_trampa):
-                chosto_vacio = len(ruta_vacio) - 1
-            else:
-                chosto_vacio = costo_trampa
-        else:
-            chosto_vacio = 0
-        chosto_total = chosto_cacao + chosto_vacio
+        chosto_total = chosto_cacao 
     else:
         chosto_total = sys.maxsize
     

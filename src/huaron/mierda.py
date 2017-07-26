@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-#nivel_log = logging.DEBUG
+nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -90,12 +90,12 @@ class PriorityQueue(object):
     def __init__(self, heap=[]):
         """if 'heap' is not empty, make sure it's heapified"""
 
-        logger_cagada.debug("pero si el orig heap %s" % heap)
+        # logger_cagada.debug("pero si el orig heap %s" % heap)
         heapq.heapify(heap)
-        logger_cagada.debug("a cihnga el heap %s" % heap)
+        # logger_cagada.debug("a cihnga el heap %s" % heap)
         self.heap = heap
         self.entry_finder = dict({i[-1]: i for i in heap})
-        logger_cagada.debug("el finder es %s" % self.entry_finder)
+        # logger_cagada.debug("el finder es %s" % self.entry_finder)
         self.REMOVED = sys.maxsize
         
     def es_menor_entrada_1(self, entrada_1, entrada_2):
@@ -119,11 +119,11 @@ class PriorityQueue(object):
         
     def _siftdown(self, heap, startpos, pos):
         newitem = heap[pos]
-        logger_cagada.debug("el nuevo meirda %s" % newitem)
+        # logger_cagada.debug("el nuevo meirda %s" % newitem)
         while pos > startpos:
             parentpos = (pos - 1) >> 1
             parent = heap[parentpos]
-            logger_cagada.debug("q pedo con %s %s" % (newitem, parent))
+            # logger_cagada.debug("q pedo con %s %s" % (newitem, parent))
 #            if (newitem[1] is not self.REMOVED  and (parent[1] is self.REMOVED or newitem < parent)):
             if (self.es_menor_entrada_1(newitem, parent)):
                 heap[pos] = parent
@@ -146,11 +146,11 @@ class PriorityQueue(object):
             self.delete(node)
         entry = [priority, node]
         self.entry_finder[node] = entry
-        logger_cagada.debug("el puto entry %s" % entry)
-        logger_cagada.debug("l nodo q c agrega %s es %s" % (type(node), node))
+        # logger_cagada.debug("el puto entry %s" % entry)
+        # logger_cagada.debug("l nodo q c agrega %s es %s" % (type(node), node))
         self.heappush(self.heap, entry)
-        logger_cagada.debug("el finde aora es %s" % self.entry_finder)
-        logger_cagada.debug("el heap aora es %s" % self.heap)
+        # logger_cagada.debug("el finde aora es %s" % self.entry_finder)
+        # logger_cagada.debug("el heap aora es %s" % self.heap)
         self.valida_caca()
 
     def delete(self, node):
@@ -158,24 +158,24 @@ class PriorityQueue(object):
         the entry as "REMOVED" in 'heap' and remove it from 'entry_finder'.
         Logic in 'pop()' properly takes care of the deleted nodes."""
 
-        logger_cagada.debug("norrando nodo %s" % (type(node)))
+        # logger_cagada.debug("norrando nodo %s" % (type(node)))
         entry = self.entry_finder.pop(node)
-        logger_cagada.debug("la entry q c borra %s" % entry)
+        # logger_cagada.debug("la entry q c borra %s" % entry)
         entry[-1] = self.REMOVED
-        logger_cagada.debug("el heap es %s" % self.heap)
+        # logger_cagada.debug("el heap es %s" % self.heap)
         return entry[0]
 
     def _siftup(self, heap, pos):
         endpos = len(heap)
         startpos = pos
         newitem = heap[pos]
-        logger_cagada.debug("la nueva mierda %s" % newitem)
+        # logger_cagada.debug("la nueva mierda %s" % newitem)
         # Bubble up the smaller child until hitting a leaf.
         childpos = 2 * pos + 1  # leftmost child position
         while childpos < endpos:
             # Set childpos to index of smaller child.
             rightpos = childpos + 1
-            logger_cagada.debug("q la chingada %s %s" % (heap[childpos], heap[rightpos] if rightpos < endpos else "Nada"))
+            # logger_cagada.debug("q la chingada %s %s" % (heap[childpos], heap[rightpos] if rightpos < endpos else "Nada"))
 #            if rightpos < endpos and (heap[rightpos][1] is not self.REMOVED and (heap[childpos][1] is self.REMOVED or not heap[childpos] < heap[rightpos])):
             if rightpos < endpos and not self.es_menor_entrada_1(heap[childpos], heap[rightpos]):
                 childpos = rightpos
@@ -186,7 +186,7 @@ class PriorityQueue(object):
         # The leaf at pos is empty now.  Put newitem there, and bubble it up
         # to its final resting place (by sifting its parents down).
         heap[pos] = newitem
-        logger_cagada.debug("puta madre %s" % heap)
+#        #logger_cagada.debug("puta madre %s" % heap)
         self._siftdown(heap, startpos, pos)
     
     def heappop(self, heap):
@@ -204,7 +204,7 @@ class PriorityQueue(object):
         nodes might be popped or still in heap, either case is fine."""
 
         while self.heap:
-            logger_cagada.debug("elem de heap %s" % self.heap)
+#            #logger_cagada.debug("elem de heap %s" % self.heap)
             priority, node = self.heappop(self.heap)
             if node is not self.REMOVED:
                 del self.entry_finder[node]
@@ -223,7 +223,7 @@ class PriorityQueue(object):
         entrada = self.heap[idx]
         nuevo_valor_padre = 0
         valor_propio = 0
-        logger_cagada.debug("validando nodo %s(%u)" % (entrada, idx))
+        # logger_cagada.debug("validando nodo %s(%u)" % (entrada, idx))
         if(entrada[1] is self.REMOVED):
             nuevo_valor_padre = valor_padre
             valor_propio = self.REMOVED
@@ -243,15 +243,31 @@ class PriorityQueue(object):
         
             
             
+HUARONMIERDA_DIRECCION_VERTICAL = 0
+HUARONMIERDA_DIRECCION_HORIZONTAL = 1
+HUARONMIERDA_DIRECCION_ESQ_1 = 2
+HUARONMIERDA_DIRECCION_ESQ_2 = 3
+HUARONMIERDA_DIRECCION_ESQ_3 = 4
+HUARONMIERDA_DIRECCION_ESQ_4 = 5
+HUARONMIERDA_DIRECCION_FINAL = HUARONMIERDA_DIRECCION_ESQ_4
             
-def huaronmierda_genera_vecinos(matrix, nodo):
+def huaronmierda_genera_vecinos(matrix, nodo, filtro=None):
     POSIBLES_MOVIMIENTOS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     tam_x = len(matrix[0])
     tam_y = len(matrix)
     pos_x = nodo[1]
     pos_y = nodo[0]
     vecinos = []
+    maskara = (0, 0)
+    if(filtro == HUARONMIERDA_DIRECCION_VERTICAL):
+        maskara = (0, 1)
+    if(filtro == HUARONMIERDA_DIRECCION_HORIZONTAL):
+        maskara = (1, 0)
     for mov_y, mov_x in POSIBLES_MOVIMIENTOS:
+        if(filtro is not None):
+            filtrado_x, filtrado_y = mov_x & maskara[0], mov_y & maskara[1]
+            if (filtrado_x, filtrado_y) == maskara:
+                continue
         candidote_y, candidote_x = (pos_y + mov_y, pos_x + mov_x)
         if(candidote_y < tam_y and candidote_x < tam_x and candidote_y >= 0 and candidote_x >= 0 and matrix[candidote_y][candidote_x] == "1"):
             vecinos.append((candidote_y, candidote_x))
@@ -329,13 +345,6 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
 #
 
 
-HUARONMIERDA_DIRECCION_VERTICAL = 0
-HUARONMIERDA_DIRECCION_HORIZONTAL = 1
-HUARONMIERDA_DIRECCION_ESQ_1 = 2
-HUARONMIERDA_DIRECCION_ESQ_2 = 3
-HUARONMIERDA_DIRECCION_ESQ_3 = 4
-HUARONMIERDA_DIRECCION_ESQ_4 = 5
-HUARONMIERDA_DIRECCION_FINAL = HUARONMIERDA_DIRECCION_ESQ_4
 def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chostos):
     factor_destino_x = 0
     factor_destino_y = 0
@@ -384,15 +393,15 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
     logger_cagada.debug("la rutal resultante %s" % ruta_mierda)
 #    logger_cagada.debug("la matrix chostos\n%s" % (caca_comun_matrix_a_cadena(matrix_chostos)))
     
-    chosto_mierda = 0
-    if(ruta_mierda):
+    chosto_mierda = sys.maxsize
+    if(ruta_mierda and (len(ruta_mierda) - 1) < chosto_brinco):
         tam_ruta = len(ruta_mierda)
         chosto_mierda = tam_ruta - 1
     else:
         chosto_mierda = chosto_brinco
         
     matrix_chostos[origen[0] - 2][origen[1] - 2] = chosto_mierda
-    logger_cagada.debug("chosto de %s a %s calculado es %s" % ((origen[0] - 2, origen[1] - 2), (destino[0] - 2, destino[1] - 2), chosto_brinco))
+    logger_cagada.debug("chosto de %s a %s calculado es %s" % ((origen[0] - 2, origen[1] - 2), (destino[0] - 2, destino[1] - 2), chosto_mierda))
         
         
 def huaronmierda_crea_matrix_rodeada(matrix):
@@ -455,6 +464,37 @@ def huaronmierda_determina_caso_predecesor(abuelo, padre, hijo):
     return idx_caso_predecesor
         
 
+def huaronmierda_dijkstra_corrige_ruta(abuelo, padre, hijo, chostos_minimos, matrix, cacaso_familiar, matrixes_chostos_precaca, chosto_hijo):
+    if(cacaso_familiar not in (HUARONMIERDA_DIRECCION_VERTICAL, HUARONMIERDA_DIRECCION_HORIZONTAL)):
+        logger_cagada.debug("no ai nada q corregir")
+        return chosto_hijo, abuelo
+    direccion_otros_abuelos = [HUARONMIERDA_DIRECCION_VERTICAL, HUARONMIERDA_DIRECCION_HORIZONTAL]
+    potenciales_otros_abuelos = huaronmierda_genera_vecinos(matrix, padre, direccion_otros_abuelos[cacaso_familiar])
+    if(not potenciales_otros_abuelos):
+        logger_cagada.debug("no ai otros abuelos")
+        return chosto_hijo, abuelo
+    chosto_abuelo = chostos_minimos.get(abuelo)
+    assert chosto_abuelo is not sys.maxsize, "pero q verga, como q l chosto abuelo es maximo, q mamada. abuelo %s padre %s hijo %s" % (abuelo, padre, hijo)
+    nuevo_abuelo = abuelo
+    chosto_nuevo_abue = chosto_abuelo + chosto_hijo
+    chostos_potencial_abuelo = [(chostos_minimos[potencial_abuelo], potencial_abuelo) for potencial_abuelo in potenciales_otros_abuelos if potencial_abuelo in chostos_minimos]
+    if(not chostos_potencial_abuelo):
+        logger_cagada.debug("otros no an sido alcanzados")
+        return chosto_hijo, abuelo
+    for chosto_potencial_abuelo, potencial_abuelo in chostos_potencial_abuelo:
+        logger_cagada.debug("l potencial abue %s de chosto %s" % (potencial_abuelo, chosto_potencial_abuelo))
+        caso_familiar = huaronmierda_determina_caso_predecesor(potencial_abuelo, padre, hijo)
+        mas_abajo = min(potencial_abuelo, hijo)
+        chosto_portencial_abuelo_hijo = matrixes_chostos_precaca[caso_familiar][mas_abajo[0]][mas_abajo[1]]
+        logger_cagada.debug("el chosto potencia de abuelo a hijo %s" % chosto_portencial_abuelo_hijo)
+        assert chosto_portencial_abuelo_hijo is not sys.maxsize, "me lleva la mierda, el chosto precaca de abuelo %s a hijo %s es mierda" % (potencial_abuelo, hijo)
+        chosto_total_potencial_abuelo = chosto_potencial_abuelo + chosto_portencial_abuelo_hijo
+        if(chosto_total_potencial_abuelo < chosto_nuevo_abue):
+            chosto_nuevo_abue = chosto_total_potencial_abuelo
+            nuevo_abuelo = potencial_abuelo
+    return chosto_nuevo_abue, nuevo_abuelo
+    
+
 def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chosto_trampa):
 
     processed = set()
@@ -462,6 +502,7 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
     pq = PriorityQueue(heap=[])
     shortest_path = {}
     predecesores = {}
+    abuelos = {}
     ruta_salida = []
     
     logger_cagada.debug("oie zhi")
@@ -493,7 +534,7 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
 #                    edge_dist = 1
                     if(vecino != vacio):
                         ruta_vacio_hijo = huaronmierda_bfs_sin_nodo(matrix, vacio, vecino, new_node)
-                        if(ruta_vacio_hijo):
+                        if(ruta_vacio_hijo and (len(ruta_vacio_hijo) - 1) < chosto_trampa):
                             edge_dist = len(ruta_vacio_hijo) - 1
                         else:
                             edge_dist = chosto_trampa
@@ -508,6 +549,12 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
                     mas_abajo = sorted([predecesor_abuelo, vecino])[0]
                     logger_cagada.debug("el de mas abajo entre abuelo %s y hijo %s  es %s" % (predecesor_abuelo, vecino, mas_abajo))
                     chosto = matrixes_chostos[caso_familiar][mas_abajo[0]][mas_abajo[1]]
+                    assert chosto is not sys.maxsize, "mierda, el costo precaca es invalido, abuelo %s padre %s hijo %s" % (predecesor_abuelo, predecesor_padre, vecino)
+                    logger_cagada.debug("originalmente chosto %s abuelo %s" % (chosto, predecesor_abuelo))
+                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto)
+                    logger_cagada.debug("tras corregir chosto %s abuelo %s" % (chosto_corregido, nuevo_abuelo))
+                    chosto = chosto_corregido
+                    abuelos[vecino] = nuevo_abuelo
                     chosto += 1
                     logger_cagada.debug("el chosto de mover %s a %s es %s" % (predecesor_abuelo, vecino, chosto))
                     edge_dist = chosto
@@ -562,7 +609,7 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     for direccion in range(HUARONMIERDA_DIRECCION_FINAL + 1):
         nueva_mierda = []
         for _ in range(len(matrix)):
-            nueva_mierda.append([0] * len(matrix[0]))
+            nueva_mierda.append([sys.maxsize] * len(matrix[0]))
         matrixes_chostos.append(nueva_mierda)
         logger_cagada.debug("anadida matriz chostos mide %u x %u" % (len(nueva_mierda), len(nueva_mierda[0])))
         for idx_fila, fila in enumerate(matrix, 2):

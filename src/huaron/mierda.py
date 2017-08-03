@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -464,23 +464,24 @@ def huaronmierda_determina_caso_predecesor(abuelo, padre, hijo):
     return idx_caso_predecesor
         
 
-def huaronmierda_dijkstra_corrige_ruta(abuelo, padre, hijo, chostos_minimos, matrix, cacaso_familiar, matrixes_chostos_precaca, chosto_hijo):
+def huaronmierda_dijkstra_corrige_ruta(abuelo, padre, hijo, chostos_minimos, matrix, cacaso_familiar, matrixes_chostos_precaca, chosto_hijo, predecesores):
+#    chosto_abuelo = chostos_minimos.get(abuelo)
+#    assert chosto_abuelo is not sys.maxsize, "pero q verga, como q l chosto abuelo es maximo, q mamada. abuelo %s padre %s hijo %s" % (abuelo, padre, hijo)
+    nuevo_abuelo = abuelo
+    chosto_nuevo_abue = chosto_hijo
+    
     if(cacaso_familiar not in (HUARONMIERDA_DIRECCION_VERTICAL, HUARONMIERDA_DIRECCION_HORIZONTAL)):
         logger_cagada.debug("no ai nada q corregir")
-        return chosto_hijo, abuelo
+        return chosto_nuevo_abue, nuevo_abuelo
     direccion_otros_abuelos = [HUARONMIERDA_DIRECCION_VERTICAL, HUARONMIERDA_DIRECCION_HORIZONTAL]
     potenciales_otros_abuelos = huaronmierda_genera_vecinos(matrix, padre, direccion_otros_abuelos[cacaso_familiar])
     if(not potenciales_otros_abuelos):
         logger_cagada.debug("no ai otros abuelos")
-        return chosto_hijo, abuelo
-    chosto_abuelo = chostos_minimos.get(abuelo)
-    assert chosto_abuelo is not sys.maxsize, "pero q verga, como q l chosto abuelo es maximo, q mamada. abuelo %s padre %s hijo %s" % (abuelo, padre, hijo)
-    nuevo_abuelo = abuelo
-    chosto_nuevo_abue = chosto_abuelo + chosto_hijo
+        return chosto_nuevo_abue, nuevo_abuelo
     chostos_potencial_abuelo = [(chostos_minimos[potencial_abuelo], potencial_abuelo) for potencial_abuelo in potenciales_otros_abuelos if potencial_abuelo in chostos_minimos]
     if(not chostos_potencial_abuelo):
         logger_cagada.debug("otros no an sido alcanzados")
-        return chosto_hijo, abuelo
+        return chosto_nuevo_abue, nuevo_abuelo
     for chosto_potencial_abuelo, potencial_abuelo in chostos_potencial_abuelo:
         logger_cagada.debug("l potencial abue %s de chosto %s" % (potencial_abuelo, chosto_potencial_abuelo))
         caso_familiar = huaronmierda_determina_caso_predecesor(potencial_abuelo, padre, hijo)
@@ -489,6 +490,15 @@ def huaronmierda_dijkstra_corrige_ruta(abuelo, padre, hijo, chostos_minimos, mat
         logger_cagada.debug("el chosto potencia de abuelo a hijo %s" % chosto_portencial_abuelo_hijo)
         assert chosto_portencial_abuelo_hijo is not sys.maxsize, "me lleva la mierda, el chosto precaca de abuelo %s a hijo %s es mierda" % (potencial_abuelo, hijo)
         chosto_total_potencial_abuelo = chosto_potencial_abuelo + chosto_portencial_abuelo_hijo
+        bisabuelo = predecesores.get(potencial_abuelo, None)
+        if(bisabuelo):
+            caso_familiar = huaronmierda_determina_caso_predecesor(bisabuelo, potencial_abuelo, padre)
+            mas_abajo = min(bisabuelo, padre)
+            chosto_portencial_bisabuelo_padre = matrixes_chostos_precaca[caso_familiar][mas_abajo[0]][mas_abajo[1]]
+            logger_cagada.debug("el chosto potencia de bisabuelo a padre %s" % chosto_portencial_bisabuelo_padre)
+            assert chosto_portencial_bisabuelo_padre is not sys.maxsize, "me lleva la mierda, el chosto precaca de bisabuelo %s a padre %s es mierda" % (bisabuelo, padre)
+            chosto_total_potencial_abuelo += chosto_portencial_bisabuelo_padre + 1
+        
         if(chosto_total_potencial_abuelo < chosto_nuevo_abue):
             chosto_nuevo_abue = chosto_total_potencial_abuelo
             nuevo_abuelo = potencial_abuelo
@@ -530,6 +540,11 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
         
         for vecino in huaronmierda_genera_vecinos(matrix, new_node):
             if(vecino not in processed):
+                new_dist = 0
+                new_predecesor = None
+                old_dist = pq.delete(vecino)
+                chosto_total_hijo = sys.maxsize
+                
                 if(new_node == source):
 #                    edge_dist = 1
                     if(vecino != vacio):
@@ -541,7 +556,7 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
                     else:
                         edge_dist = 0
                     logger_cagada.debug("el chosto de mover la 1rea vez, o sea de poner el vacio %s" % edge_dist)
-                    edge_dist += 1
+                    chosto_total_hijo = min_dist + edge_dist + 1
                 else:
                     predecesor_padre = new_node
                     predecesor_abuelo = predecesores[predecesor_padre]
@@ -550,20 +565,17 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
                     logger_cagada.debug("el de mas abajo entre abuelo %s y hijo %s  es %s" % (predecesor_abuelo, vecino, mas_abajo))
                     chosto = matrixes_chostos[caso_familiar][mas_abajo[0]][mas_abajo[1]]
                     assert chosto is not sys.maxsize, "mierda, el costo precaca es invalido, abuelo %s padre %s hijo %s" % (predecesor_abuelo, predecesor_padre, vecino)
-                    logger_cagada.debug("originalmente chosto %s abuelo %s" % (chosto, predecesor_abuelo))
-                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto)
-                    logger_cagada.debug("tras corregir chosto %s abuelo %s" % (chosto_corregido, nuevo_abuelo))
-                    chosto = chosto_corregido
-                    abuelos[vecino] = nuevo_abuelo
-                    chosto += 1
                     logger_cagada.debug("el chosto de mover %s a %s es %s" % (predecesor_abuelo, vecino, chosto))
-                    edge_dist = chosto
-                new_dist = 0
-                new_predecesor = None
-                old_dist = pq.delete(vecino)
-                logger_cagada.debug("comparando old %u con %u ", old_dist, min_dist)
-                if(min_dist + edge_dist < old_dist):
-                    new_dist = min_dist + edge_dist
+
+                    logger_cagada.debug("originalmente chosto %s abuelo %s" % (chosto + min_dist , predecesor_abuelo))
+                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto + min_dist, predecesores)
+                    logger_cagada.debug("tras corregir chosto %s abuelo %s" % (chosto_corregido, nuevo_abuelo))
+                    chosto_total_hijo = chosto_corregido + 1
+                    abuelos[vecino] = nuevo_abuelo
+                    
+                logger_cagada.debug("comparando old %u con %u ", old_dist, chosto_total_hijo)
+                if(chosto_total_hijo < old_dist):
+                    new_dist = chosto_total_hijo
                     new_predecesor = new_node
                 else:
                     new_dist = old_dist

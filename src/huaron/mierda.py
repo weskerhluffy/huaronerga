@@ -72,7 +72,7 @@ import sys
 import heapq
 
 nivel_log = logging.ERROR
-# nivel_log = logging.DEBUG
+#nivel_log = logging.DEBUG
 logger_cagada = None
 
 def caca_comun_matrix_a_cadena(matrix):
@@ -345,7 +345,7 @@ def huaronmierda_bfs_sin_nodo(matrix, origen, destino, nodo_caca):
 #
 
 
-def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chostos):
+def huaronmierda_precaca(origen_tupla, matrix, chosto_brinco, direccion, matrixes_chostos):
     factor_destino_x = 0
     factor_destino_y = 0
     factor_mastorbo_x = 0
@@ -380,6 +380,9 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
             
     matrix_chostos = matrixes_chostos[direccion]
     
+    origen = [0] * 2
+    origen[0], origen[1] = origen_tupla[0] + 2, origen_tupla[1] + 2
+    
     destino = (_, _) = (origen[0] + factor_destino_x, origen[1] + factor_destino_y)
     mastorbo = (_, _) = (origen[0] + factor_mastorbo_x, origen[1] + factor_mastorbo_y)
     logger_cagada.debug("calculando cohosto de %s a %s con estorbo %s" % (origen, destino, mastorbo))
@@ -388,7 +391,7 @@ def huaronmierda_precaca(origen, matrix, chosto_brinco, direccion, matrixes_chos
         logger_cagada.debug("el destino (%s, %s) es una mierda, no c puede proceder" % (destino))
         return
     
-    ruta_mierda = huaronmierda_bfs_sin_nodo(matrix, origen, destino, mastorbo)
+    ruta_mierda = huaronmierda_bfs_sin_nodo(matrix, tuple(origen), destino, mastorbo)
     
     logger_cagada.debug("la rutal resultante %s" % ruta_mierda)
 #    logger_cagada.debug("la matrix chostos\n%s" % (caca_comun_matrix_a_cadena(matrix_chostos)))
@@ -625,17 +628,12 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     matrix_rodeada = huaronmierda_crea_matrix_rodeada(matrix)
     logger_cagada.debug("la matrix rodead\n%s" % caca_comun_matrix_a_cadena(matrix_rodeada))
     
-    for direccion in range(HUARONMIERDA_DIRECCION_FINAL + 1):
+    for _ in range(HUARONMIERDA_DIRECCION_FINAL + 1):
         nueva_mierda = []
         for _ in range(len(matrix)):
             nueva_mierda.append([sys.maxsize] * len(matrix[0]))
         matrixes_chostos.append(nueva_mierda)
         logger_cagada.debug("anadida matriz chostos mide %u x %u" % (len(nueva_mierda), len(nueva_mierda[0])))
-        for idx_fila, fila in enumerate(matrix, 2):
-            for idx_col, _ in enumerate(fila, 2):
-                huaronmierda_precaca((idx_fila , idx_col), matrix_rodeada, costo_trampa, direccion , matrixes_chostos)
-    
-        logger_cagada.debug("la matrix de direccion %s kedo:\n%s" % (direccion, caca_comun_matrix_a_cadena(nueva_mierda)))
 
     
     logger_cagada.debug("el bloke caca-o %s" % (type(caca)))

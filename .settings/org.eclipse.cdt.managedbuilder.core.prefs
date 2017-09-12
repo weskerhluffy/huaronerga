@@ -1,0 +1,13 @@
+eclipse.preferences.version=1
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/CPATH/delimiter=\:
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/CPATH/operation=remove
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/C_INCLUDE_PATH/delimiter=\:
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/C_INCLUDE_PATH/operation=replace
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/C_INCLUDE_PATH/value=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/usr/include
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/append=true
+environment/buildEnvironmentInclude/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/appendContributed=true
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/LIBRARY_PATH/delimiter=\:
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/LIBRARY_PATH/operation=replace
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/LIBRARY_PATH/value=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/usr/lib
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/append=true
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.gnu.macosx.exe.debug.93064700/appendContributed=true

@@ -14,3 +14,9 @@ src/huaron/ass.py
 *.swo
 
 src/huaron/shit1
+
+src/huaronverga
+
+*.plist
+
+src/huaronverga.dSYM/Contents/Resources/DWARF/huaronverga

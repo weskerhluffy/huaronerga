@@ -483,8 +483,21 @@ typedef struct huaronverga_args {
 puto_cardinal movimientos_decendiente_directo[] = { { 1, 0 }, { 0, 1 },
 		{ -1, 0 }, { 0, -1 } };
 
-puto_cardinal putos_tmp[HUARONVERGA_MAX_ELEMENTOS] = {
-		[0 ... HUARONVERGA_MAX_ELEMENTOS]=HUARONVERGA_VALOR_INVALIDO };
+puto_cardinal putos_tmp[] = { [0 ... HUARONVERGA_MAX_ELEMENTOS
+		>> 1]=HUARONVERGA_VALOR_INVALIDO,
+		[((HUARONVERGA_MAX_ELEMENTOS >> 1) + 1) ... HUARONVERGA_MAX_ELEMENTOS
+				]=HUARONVERGA_VALOR_INVALIDO };
+
+puto_cardinal movimientos_posible_abuelo[][2] = {
+		[vertical_huaronverga_caso_familiar]= { { 0, 1 }, { 0, -1 } },
+		[horizontal_huaronverga_caso_familiar ]= { { 1, 0 }, { -1, 0 } },
+		[esq_1_huaronverga_caso_familiar ... final_huaronverga_caso_familiar
+				]= { { HUARONVERGA_VALOR_INVALIDO,
+				HUARONVERGA_VALOR_INVALIDO }, {
+				HUARONVERGA_VALOR_INVALIDO,
+				HUARONVERGA_VALOR_INVALIDO } } };
+natural movimientos_posible_abuelo_tam[] = { [vertical_huaronverga_caso_familiar
+		]= 2, [horizontal_huaronverga_caso_familiar ]=2 };
 
 #if 0
 natural cacasos_decendiente[]= {
@@ -775,6 +788,59 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 	return res;
 }
 
+static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
+		huaronverga_args *hvargs) {
+	tipo_dato chosto = HUARONVERGA_VALOR_INVALIDO;
+	huaronverga_caso_familiar cacaso = hvargs->cacaso;
+	puto_cardinal *abuelo = hvargs->abuelo;
+	puto_cardinal *padre = hvargs->padre;
+	puto_cardinal *hijo = hvargs->hijo;
+
+	for (int i = 0; i < movimientos_posible_abuelo_tam[cacaso]; i++) {
+		tipo_dato chosto_posible_bisabuelo_padre = 0;
+		tipo_dato chosto_posible_abuelo_hijo = 0;
+		tipo_dato chosto_posible_abuelo = 0;
+		tipo_dato chosto_hijo = 0;
+		puto_cardinal *mov_act = movimientos_posible_abuelo[cacaso][i];
+		puto_cardinal *posible_abuelo = &(puto_cardinal ) { .coord_x =
+				padre->coord_x + mov_act->coord_x, .coord_y =
+				padre->coord_y + mov_act->coord_y };
+		puto_cardinal *posible_bisabuelo =
+				ctx->matrix_predecesores[posible_abuelo->coord_x][posible_abuelo->coord_y];
+
+		assert_timeout(posible_abuelo->coord_x!=HUARONVERGA_VALOR_INVALIDO);
+		assert_timeout(posible_abuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
+
+		chosto_posible_abuelo =
+				ctx->matrix_chosto_minimo[posible_abuelo->coord_x][posible_abuelo->coord_y];
+		assert_timeout(
+				chosto_posible_abuelo->coord_x!=HUARONVERGA_VALOR_INVALIDO);
+		assert_timeout(
+				chosto_posible_abuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
+
+		chosto_posible_bisabuelo_padre = huaronverga_obten_chosto_brinco(ctx,
+				&(huaronverga_args ) { .cacaso = cacaso, .abuelo =
+								posible_bisabuelo, .padre = posible_abuelo,
+								.hijo = padre });
+		assert_timeout(
+				chosto_posible_bisabuelo_padre!=HUARONVERGA_VALOR_INVALIDO);
+
+		chosto_posible_abuelo_hijo = huaronverga_obten_chosto_brinco(ctx,
+				&(huaronverga_args ) { .cacaso = cacaso, .abuelo =
+								posible_abuelo, .padre = padre, .hijo = hijo });
+
+		assert_timeout(chosto_posible_abuelo_hijo!=HUARONVERGA_VALOR_INVALIDO);
+
+		chosto_hijo = chosto_posible_abuelo + chosto_posible_bisabuelo_padre
+				+ chosto_posible_abuelo_hijo;
+
+		if (chosto_hijo < chosto) {
+			chosto = chosto_hijo;
+		}
+	}
+
+	return chosto;
+}
 
 int main() {
 	return EXIT_SUCCESS;

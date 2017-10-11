@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <math.h>
 #include <stdint.h>
+#include <ctype.h>
 
 #ifdef CACA_COMUN_LOG
 #include <execinfo.h>
@@ -207,6 +208,29 @@ static char *caca_comun_arreglo_a_cadena_natural(natural *arreglo,
 	*(ap_buffer + characteres_escritos) = '\0';
 	return ap_buffer;
 }
+
+static char *caca_comun_arreglo_a_cadena_byteme(byteme *arreglo,
+		natural tam_arreglo, char *buffer) {
+	int i;
+	char *ap_buffer = NULL;
+	int characteres_escritos = 0;
+#ifdef ONLINE_JUDGE
+	return NULL;
+#endif
+
+	memset(buffer, 0, 100);
+	ap_buffer = buffer;
+
+	for (i = 0; i < tam_arreglo; i++) {
+		characteres_escritos += sprintf(ap_buffer + characteres_escritos, "%c",
+				*(arreglo + i));
+		if (i < tam_arreglo - 1) {
+			*(ap_buffer + characteres_escritos++) = ' ';
+		}
+	}
+	*(ap_buffer + characteres_escritos) = '\0';
+	return ap_buffer;
+}
 char *caca_comun_matrix_a_cadena(tipo_dato *matrix, natural filas_tam,
 		natural columas_tam, char *buffer) {
 	int i, j;
@@ -220,6 +244,20 @@ char *caca_comun_matrix_a_cadena(tipo_dato *matrix, natural filas_tam,
 	}
 	return buffer;
 }
+
+char *caca_comun_matrix_a_cadena_byteme(byteme *matrix, natural filas_tam,
+		natural columas_tam, natural max_cols,char *buffer) {
+	int i, j;
+	natural inicio_buffer_act = 0;
+	for (int i = 0; i < filas_tam; i++) {
+		caca_comun_arreglo_a_cadena_byteme(matrix + i * max_cols, columas_tam,
+				buffer + inicio_buffer_act);
+		inicio_buffer_act += strlen(buffer + inicio_buffer_act);
+		buffer[inicio_buffer_act++] = '\n';
+/*		caca_log_debug("pero q mierda inicio buffer act %u %s",inicio_buffer_act,buffer);*/
+	}
+	return buffer;
+}
 #else
 static char *caca_comun_arreglo_a_cadena(tipo_dato *arreglo, int tam_arreglo,
 		char *buffer) {
@@ -229,8 +267,17 @@ static char *caca_comun_arreglo_a_cadena_natural(natural *arreglo,
 		natural tam_arreglo, char *buffer) {
 	return NULL;
 }
+static char *caca_comun_arreglo_a_cadena_byteme(byteme *arreglo,
+		natural tam_arreglo, char *buffer) {
+	return NULL;
+}
 char *caca_comun_matrix_a_cadena(tipo_dato *matrix, natural filas_tam,
 		natural columas_tam, char *buffer) {
+	return NULL;
+}
+
+char *caca_comun_matrix_a_cadena_byteme(byteme *matrix, natural filas_tam,
+		natural columas_tam, natural max_cols, char *buffer) {
 	return NULL;
 }
 #endif
@@ -1416,6 +1463,8 @@ static inline void huaronverga_main() {
 	memset(ctx, HUARONVERGA_VALOR_INVALIDO, sizeof(huaronverga_ctx));
 	memset(ctx->matrix_rodeada, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO,
 			sizeof(ctx->matrix_rodeada));
+	memset(ctx->matrix, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO,
+			sizeof(ctx->matrix));
 
 	scanf("%u %u %u %u\n", &filas_tam, &columnas_tam, &ctx->chosto_brinco,
 			&consultas_tam);
@@ -1423,17 +1472,27 @@ static inline void huaronverga_main() {
 	caca_log_debug("filas %u cols %u chosto brinco %u consuls %u", filas_tam,
 			columnas_tam, ctx->chosto_brinco, consultas_tam);
 
-	for (int i = 0; i < filas_tam; i++) {
-		for (int j = 0; j < columnas_tam; j++) {
-			scanf("%c", &ctx->matrix[i][j]);
-			ctx->matrix_rodeada[i + 2][j + 2] = ctx->matrix[i][j];
+	int i = 0;
+	while (i < filas_tam) {
+		int j = 0;
+		while (j < columnas_tam) {
+			char car_act = '\0';
+			scanf("%c", &car_act);
+			if (!isspace(car_act)) {
+				ctx->matrix[i][j] = car_act;
+				caca_log_debug("en %u,%u el car leido %c", i, j,
+						ctx->matrix[i][j]);
+				ctx->matrix_rodeada[i + 2][j + 2] = ctx->matrix[i][j];
+				j++;
+			}
 		}
+		i++;
 	}
-
+	caca_log_debug("la concha de la lora");
 	caca_log_debug("la matrix\n%s",
-			caca_comun_matrix_a_cadena(ctx->matrix, filas_tam, columas_tam, CACA_COMUN_BUF_STATICO));
+			caca_comun_matrix_a_cadena_byteme((byteme *)ctx->matrix, filas_tam, columnas_tam,HUARONVERGA_MAX_COLUMNAS, CACA_COMUN_BUF_STATICO));
 	caca_log_debug("la matrix rodeada\n%s",
-			caca_comun_matrix_a_cadena(ctx->matrix_rodeada, filas_tam, columas_tam, CACA_COMUN_BUF_STATICO));
+			caca_comun_matrix_a_cadena_byteme((byteme *)ctx->matrix_rodeada, filas_tam+4, columnas_tam+4,HUARONVERGA_MAX_COLUMNAS+4, CACA_COMUN_BUF_STATICO));
 
 	for (int i = 0; i < consultas_tam; i++) {
 		puto_cardinal *cacao = &(puto_cardinal ) { 0 };
@@ -1454,5 +1513,6 @@ static inline void huaronverga_main() {
 }
 
 int main() {
+	huaronverga_main();
 	return EXIT_SUCCESS;
 }

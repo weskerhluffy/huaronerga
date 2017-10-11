@@ -20,3 +20,5 @@ src/huaronverga
 *.plist
 
 src/huaronverga.dSYM/Contents/Resources/DWARF/huaronverga
+
+src/shit

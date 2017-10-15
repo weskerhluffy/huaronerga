@@ -1743,6 +1743,7 @@ static inline void huaronverga_main() {
 						HUARONVERGA_VALOR_INVALIDO };
 			}
 		}
+		printf("%d\n", resu);
 	}
 
 	free(ctx);

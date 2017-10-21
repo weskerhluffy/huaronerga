@@ -1432,6 +1432,8 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		chosto_posible_abuelo = huaronverga_obten_valor_en_coord(
 				ctx->matrix_chosto_minimo, posible_abuelo);
 
+		caca_log_debug("el chosto posible abue %u", chosto_posible_abuelo);
+
 		if (chosto_posible_abuelo == HUARONVERGA_VALOR_INVALIDO) {
 			continue;
 		}
@@ -1450,8 +1452,12 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 					ctx, &(huaronverga_args ) { .cacaso = cacaso, .abuelo =
 									posible_bisabuelo, .padre = posible_abuelo,
 									.hijo = padre });
+			caca_log_debug("chosto posible abuelo a padre %u",
+					chosto_posible_bisabuelo_padre);
 			assert_timeout(
 					chosto_posible_bisabuelo_padre!=HUARONVERGA_VALOR_INVALIDO);
+
+			chosto_posible_bisabuelo_padre++;
 		}
 
 		chosto_posible_abuelo_hijo = huaronverga_obten_chosto_brinco(ctx,
@@ -1459,9 +1465,14 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 								posible_abuelo, .padre = padre, .hijo = hijo });
 
 		assert_timeout(chosto_posible_abuelo_hijo!=HUARONVERGA_VALOR_INVALIDO);
+		chosto_posible_abuelo_hijo++;
 
 		chosto_hijo = chosto_posible_abuelo + chosto_posible_bisabuelo_padre
 				+ chosto_posible_abuelo_hijo;
+
+		caca_log_debug("el chosto hijo posible %u (%u + %u + %u)", chosto_hijo,
+				chosto_posible_abuelo, chosto_posible_bisabuelo_padre,
+				chosto_posible_abuelo_hijo);
 
 		if (chosto_hijo < chosto) {
 			chosto = chosto_hijo;
@@ -1489,7 +1500,7 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			{ 0 };
 	natural vecinos_tmp_cnt = 0;
 	bool encontrada_salida = falso;
-	tipo_dato chosto_final = 0;
+	tipo_dato chosto_final = HUARONVERGA_VALOR_INVALIDO;
 
 	puto_cardinal *putos_tmp = NULL;
 	natural putos_tmp_cnt = 0;
@@ -1497,6 +1508,10 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 	heap_shit *cola_prioridad = NULL;
 
 	bitch_vector_ctx *bvctx = NULL;
+
+	if (cacao->coord_xy == salida->coord_xy) {
+		return 0;
+	}
 
 	if (!huaronverga_valida_puto_cardinal(ctx, cacao)
 			|| !huaronverga_valida_puto_cardinal(ctx, vacio)
@@ -1521,12 +1536,16 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			puto_cardinal *puto_act = putos_tmp + putos_tmp_cnt++;
 			puto_act->coord_y = j;
 			puto_act->coord_x = i;
-			caca_log_debug(
-					"kizas poni inicialmente en cola %s, valor en matrix %c",
-					puto_cardinal_a_cadena_buffer_local(puto_act),
-					huaronverga_obten_valor_en_coord(ctx->matrix,puto_act));
+			/*
+			 caca_log_debug(
+			 "kizas poni inicialmente en cola %s, valor en matrix %c",
+			 puto_cardinal_a_cadena_buffer_local(puto_act),
+			 huaronverga_obten_valor_en_coord(ctx->matrix,puto_act));
+			 */
 			if (huaronverga_obten_valor_en_coord(ctx->matrix,puto_act)==HUARONVERGA_CARACTER_BLOQUE_LIBRE && huaronverga_compacta_coordenada(puto_act)!=huaronverga_compacta_coordenada(cacao)) {
-				caca_log_debug("si c nculo %s",puto_cardinal_a_cadena_buffer_local(puto_act))
+				/*
+				 caca_log_debug("si c nculo %s",puto_cardinal_a_cadena_buffer_local(puto_act))
+				 */
 				heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {.prioridad =
 					HUARONVERGA_VALOR_INVALIDO, .llave =
 					huaronverga_compacta_coordenada(puto_act), .valor =
@@ -1620,10 +1639,10 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 					hvargs);
 			tipo_dato chosto_hijo = chosto_padre + chosto_padre_hijo + 1;
 			caca_log_debug("el chosto hijo %u (%u + %u)", chosto_hijo,
-					chosto_padre, chosto_padre_hijo)
+					chosto_padre, chosto_padre_hijo+1)
 
 			hvargs->chosto_act_hijo = chosto_hijo;
-			chosto_hijo = huaronverga_mejora_chosto_hijo(ctx, hvargs);
+//			chosto_hijo = huaronverga_mejora_chosto_hijo(ctx, hvargs);
 
 			chosto_act = huaronverga_obten_valor_en_coord(*matrix_chosto_minimo,
 					hijo);
@@ -1743,7 +1762,11 @@ static inline void huaronverga_main() {
 						HUARONVERGA_VALOR_INVALIDO };
 			}
 		}
-		printf("%d\n", resu);
+		if (resu == HUARONVERGA_VALOR_INVALIDO) {
+			printf("-1\n");
+		} else {
+			printf("%d\n", resu);
+		}
 	}
 
 	free(ctx);

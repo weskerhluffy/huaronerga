@@ -1,3 +1,4 @@
+#! /Library/Frameworks/Python.framework/Versions/3.4/bin/python3
 '''
 Created on 13/11/2016
 
@@ -578,7 +579,8 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
                     logger_cagada.debug("el chosto de mover %s a %s es %s" % (predecesor_abuelo, vecino, chosto))
 
                     logger_cagada.debug("originalmente chosto %s abuelo %s" % (chosto + min_dist , predecesor_abuelo))
-                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto + min_dist, predecesores, matrix_rodeada, chosto_trampa)
+                    chosto_corregido, nuevo_abuelo = chosto + min_dist, predecesor_abuelo
+#                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto + min_dist, predecesores, matrix_rodeada, chosto_trampa)
                     logger_cagada.debug("tras corregir chosto %s abuelo %s" % (chosto_corregido, nuevo_abuelo))
                     chosto_total_hijo = chosto_corregido + 1
                     abuelos[vecino] = nuevo_abuelo

@@ -253,7 +253,12 @@ HUARONMIERDA_DIRECCION_ESQ_4 = 5
 HUARONMIERDA_DIRECCION_FINAL = HUARONMIERDA_DIRECCION_ESQ_4
             
 def huaronmierda_genera_vecinos(matrix, nodo, filtro=None):
-    POSIBLES_MOVIMIENTOS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    POSIBLES_MOVIMIENTOS = [
+        (1, 0),
+        (0, 1),
+        (-1, 0),
+        (0, -1)
+        ]
     tam_x = len(matrix[0])
     tam_y = len(matrix)
     pos_x = nodo[1]
@@ -580,7 +585,9 @@ def huaronmierda_dijkstra(source, destino, matrix, matrixes_chostos, vacio, chos
 
                     logger_cagada.debug("originalmente chosto %s abuelo %s" % (chosto + min_dist , predecesor_abuelo))
                     chosto_corregido, nuevo_abuelo = chosto + min_dist, predecesor_abuelo
-#                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto + min_dist, predecesores, matrix_rodeada, chosto_trampa)
+                    
+                    chosto_corregido, nuevo_abuelo = huaronmierda_dijkstra_corrige_ruta(predecesor_abuelo, predecesor_padre, vecino, shortest_path, matrix, caso_familiar, matrixes_chostos, chosto + min_dist, predecesores, matrix_rodeada, chosto_trampa)
+                    
                     logger_cagada.debug("tras corregir chosto %s abuelo %s" % (chosto_corregido, nuevo_abuelo))
                     chosto_total_hijo = chosto_corregido + 1
                     abuelos[vecino] = nuevo_abuelo
@@ -642,6 +649,18 @@ def huaronmierda_core(matrix, caca, salida, vacio, costo_trampa):
     distancias_cortas, ruta_caca = huaronmierda_dijkstra(caca, salida, matrix, matrixes_chostos, vacio, costo_trampa, matrix_rodeada)
     
     logger_cagada.debug("las distancias + cortas %s" % distancias_cortas)
+    
+    cadenita = ""
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            coord_act = (i, j)
+            if coord_act in distancias_cortas:
+                cadenita += "{num:4d},".format(num=distancias_cortas[coord_act])
+            else:
+                cadenita += "{num:4d},".format(num=-11)
+        cadenita+="\n"
+    logger_cagada.debug("\n{}".format(cadenita)) 
+        
     for mierda in ruta_caca:
         chosto_nodo = distancias_cortas[mierda]
         logger_cagada.debug("la distancia de %s a %s es %s" % (caca, mierda, chosto_nodo))

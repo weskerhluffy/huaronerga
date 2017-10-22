@@ -177,7 +177,7 @@ static char *caca_comun_arreglo_a_cadena(tipo_dato *arreglo, int tam_arreglo,
 
 	for (i = 0; i < tam_arreglo; i++) {
 		characteres_escritos += sprintf(ap_buffer + characteres_escritos,
-				"%12d", *(arreglo + i));
+				"%4d", *(arreglo + i));
 		if (i < tam_arreglo - 1) {
 			*(ap_buffer + characteres_escritos++) = ',';
 		}
@@ -232,11 +232,11 @@ static char *caca_comun_arreglo_a_cadena_byteme(byteme *arreglo,
 	return ap_buffer;
 }
 char *caca_comun_matrix_a_cadena(tipo_dato *matrix, natural filas_tam,
-		natural columas_tam, char *buffer) {
+		natural columas_tam,natural max_cols, char *buffer) {
 	int i, j;
 	natural inicio_buffer_act = 0;
 	for (int i = 0; i < filas_tam; i++) {
-		caca_comun_arreglo_a_cadena(matrix + i * columas_tam, columas_tam,
+		caca_comun_arreglo_a_cadena(matrix + i * max_cols, columas_tam,
 				buffer + inicio_buffer_act);
 		inicio_buffer_act += strlen(buffer + inicio_buffer_act);
 		buffer[inicio_buffer_act++] = '\n';
@@ -272,7 +272,7 @@ static char *caca_comun_arreglo_a_cadena_byteme(byteme *arreglo,
 	return NULL;
 }
 char *caca_comun_matrix_a_cadena(tipo_dato *matrix, natural filas_tam,
-		natural columas_tam, char *buffer) {
+		natural columas_tam, natural max_cols, char *buffer) {
 	return NULL;
 }
 
@@ -609,6 +609,365 @@ static inline char *puto_cardinal_arreglo_a_cacadena(puto_cardinal *putos,
 }
 
 #if 1
+typedef natural hm_iter;
+#define HASH_MAP_VALOR_INVALIDO ((hm_iter)CACA_COMUN_VALOR_INVALIDO)
+typedef struct hash_map_entry {
+	entero_largo llave;
+	entero_largo valor;
+} hm_entry;
+typedef struct hash_map_cubeta {
+	uint64_t hash;
+	hm_entry *entry;
+} hm_cubeta;
+typedef struct hash_map_robin_hood_back_shift {
+	hm_cubeta *buckets_;
+	uint64_t num_buckets_;
+	uint64_t num_buckets_used_;
+	uint64_t probing_min_;
+	uint64_t probing_max_;
+} hm_rr_bs_tabla;
+int hash_map_robin_hood_back_shift_init(hm_rr_bs_tabla *ht, int num_cubetas) {
+	ht->num_buckets_ = num_cubetas;
+	ht->buckets_ = (hm_cubeta *) calloc(ht->num_buckets_, sizeof(hm_cubeta));
+	ht->num_buckets_used_ = 0;
+	ht->probing_max_ = num_cubetas;
+	return 0;
+}
+int hash_map_robin_hood_back_shift_fini(hm_rr_bs_tabla *ht) {
+	if (ht->buckets_ != NULL) {
+		for (uint32_t i = 0; i < ht->num_buckets_; i++) {
+			if (ht->buckets_[i].entry != NULL) {
+				free(ht->buckets_[i].entry);
+				ht->buckets_[i].entry = NULL;
+			}
+		}
+		free(ht->buckets_);
+	}
+	return 0;
+}
+static inline int hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(
+		hm_rr_bs_tabla *ht, uint64_t index_stored, uint64_t *distance) {
+	hm_cubeta cubeta = ht->buckets_[index_stored];
+	*distance = 0;
+	if (cubeta.entry == NULL)
+		return -1;
+	uint64_t num_cubetas = ht->num_buckets_;
+	uint64_t index_init = cubeta.hash % num_cubetas;
+	if (index_init <= index_stored) {
+		*distance = index_stored - index_init;
+	} else {
+		*distance = index_stored + (num_cubetas - index_init);
+	}
+	return 0;
+}
+hm_iter hash_map_robin_hood_back_shift_obten(hm_rr_bs_tabla *ht,
+		const entero_largo key, entero_largo *value) {
+	uint64_t num_cubetas = ht->num_buckets_;
+	uint64_t prob_max = ht->probing_max_;
+//	uint64_t hash = hash_function_caca(key);
+	uint64_t hash = key % num_cubetas;
+	uint64_t index_init = hash;
+	uint64_t probe_distance = 0;
+	uint64_t index_current;
+	bool found = falso;
+	uint32_t i;
+	*value = HASH_MAP_VALOR_INVALIDO;
+	for (i = 0; i < num_cubetas; i++) {
+		index_current = (index_init + i) % num_cubetas;
+		hm_entry *entrada = ht->buckets_[index_current].entry;
+		if (entrada == NULL) {
+			break;
+		}
+		hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+				index_current, &probe_distance);
+		if (i > probe_distance) {
+			break;
+		}
+		if (entrada->llave == key) {
+			*value = entrada->valor;
+			found = verdadero;
+			break;
+		}
+	}
+	if (found)
+		return index_current;
+	return HASH_MAP_VALOR_INVALIDO;
+}
+hm_iter hash_map_robin_hood_back_shift_pon(hm_rr_bs_tabla *ht, entero_largo key,
+		entero_largo value, bool *nuevo_entry) {
+	uint64_t num_cubetas = ht->num_buckets_;
+	uint64_t prob_max = ht->probing_max_;
+	uint64_t prob_min = ht->probing_min_;
+	hm_cubeta *cubetas = ht->buckets_;
+	*nuevo_entry = verdadero;
+	if (ht->num_buckets_used_ == num_cubetas) {
+		*nuevo_entry = falso;
+		return HASH_MAP_VALOR_INVALIDO;
+	}
+	ht->num_buckets_used_ += 1;
+//	uint64_t hash = hash_function_caca(key);
+	uint64_t hash = key % num_cubetas;
+	uint64_t index_init = hash;
+	hm_entry *entry = (hm_entry *) calloc(1, sizeof(hm_entry));
+	entry->llave = key;
+	entry->valor = value;
+	uint64_t index_current = index_init % num_cubetas;
+	uint64_t probe_current = 0;
+	uint64_t probe_distance;
+	hm_entry *entry_temp;
+	uint64_t hash_temp;
+	uint64_t i;
+	for (i = 0; i < num_cubetas; i++) {
+		index_current = (index_init + i) % num_cubetas;
+		hm_cubeta *cubeta = cubetas + index_current;
+		if (cubeta->entry == NULL) {
+			cubeta->entry = entry;
+			cubeta->hash = hash;
+			if (index_current > prob_max) {
+				ht->probing_max_ = index_current;
+			}
+			if (index_current < prob_min) {
+				ht->probing_min_ = index_current;
+			}
+			break;
+		} else {
+			if (cubeta->entry->llave == key) {
+				free(entry);
+				*nuevo_entry = falso;
+				break;
+			}
+			hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+					index_current, &probe_distance);
+			if (probe_current > probe_distance) {
+				// Swapping the current bucket with the one to insert
+				entry_temp = cubeta->entry;
+				hash_temp = cubeta->hash;
+				cubeta->entry = entry;
+				cubeta->hash = hash;
+				entry = entry_temp;
+				hash = hash_temp;
+				probe_current = probe_distance;
+			}
+		}
+		probe_current++;
+	}
+	return index_current;
+}
+int hash_map_robin_hood_back_shift_borra(hm_rr_bs_tabla *ht,
+		const tipo_dato key) {
+	uint64_t num_cubetas = ht->num_buckets_;
+	uint64_t prob_max = ht->probing_max_;
+	uint64_t prob_min = ht->probing_max_;
+	uint64_t hash = key % num_cubetas;
+	uint64_t index_init = hash;
+	bool found = falso;
+	uint64_t index_current = 0;
+	uint64_t probe_distance = 0;
+	hm_entry *entrada = NULL;
+	for (uint64_t i = 0; i < num_cubetas; i++) {
+		index_current = (index_init + i) % num_cubetas;
+		entrada = ht->buckets_[index_current].entry;
+		hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+				index_current, &probe_distance);
+		if (entrada == NULL || i > probe_distance) {
+			break;
+		}
+		if (entrada->llave == key) {
+			found = verdadero;
+			break;
+		}
+	}
+	if (found) {
+		free(entrada);
+		uint64_t i = 1;
+		uint64_t index_previous = 0, index_swap = 0;
+		for (i = 1; i < num_cubetas; i++) {
+			index_previous = (index_current + i - 1) % num_cubetas;
+			index_swap = (index_current + i) % num_cubetas;
+			hm_cubeta *cubeta_swap = ht->buckets_ + index_swap;
+			hm_cubeta *cubeta_previous = ht->buckets_ + index_previous;
+			if (cubeta_swap->entry == NULL) {
+				cubeta_previous->entry = NULL;
+				break;
+			}
+			uint64_t distance;
+			if (hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(
+					ht, index_swap, &distance) != 0) {
+				fprintf(stderr, "Error in FillDistanceToInitIndex()");
+			}
+			if (!distance) {
+				cubeta_previous->entry = NULL;
+				break;
+			}
+			cubeta_previous->entry = cubeta_swap->entry;
+			cubeta_previous->hash = cubeta_swap->hash;
+		}
+		if (i < num_cubetas) {
+			if (index_previous == prob_min) {
+				prob_min++;
+				if (prob_min >= num_cubetas) {
+					prob_min = 0;
+				} else {
+					while (prob_min < num_cubetas
+							&& ht->buckets_[prob_min].entry) {
+						prob_min++;
+					}
+					if (prob_min >= num_cubetas) {
+						prob_min = num_cubetas;
+					}
+				}
+				ht->probing_min_ = prob_min;
+			}
+			if (index_previous == prob_max) {
+				prob_max--;
+				if (prob_max >= num_cubetas) {
+					prob_max = num_cubetas;
+				} else {
+					while (((int64_t) prob_max) >= 0
+							&& ht->buckets_[prob_max].entry) {
+						prob_max--;
+					}
+					if (prob_max >= num_cubetas) {
+						prob_max = 0;
+					}
+				}
+				ht->probing_max_ = prob_max;
+			}
+		}
+		ht->num_buckets_used_--;
+		return 0;
+	}
+	return 1;
+}
+static inline int hash_map_robin_hood_back_shift_indice_inicio(
+		hm_rr_bs_tabla *ht) {
+	return ht->probing_min_;
+}
+static inline int hash_map_robin_hood_back_shift_indice_final(
+		hm_rr_bs_tabla *ht) {
+	return ht->probing_max_;
+}
+static inline bool hash_map_robin_hood_back_shift_indice_existe(
+		hm_rr_bs_tabla *ht, hm_iter indice) {
+	return !!ht->buckets_[indice].entry;
+}
+static inline entero_largo hash_map_robin_hood_back_shift_indice_obten_llave(
+		hm_rr_bs_tabla *ht, hm_iter indice) {
+	assert_timeout(indice <= ht->probing_max_ && indice >= ht->probing_min_);
+	hm_entry *entrada = ht->buckets_[indice].entry;
+	assert_timeout(entrada);
+	return entrada->llave;
+}
+static inline void hash_map_robin_hood_back_shift_indice_pon_valor(
+		hm_rr_bs_tabla *ht, hm_iter indice, entero_largo valor) {
+	assert_timeout(indice <= ht->probing_max_ && indice >= ht->probing_min_);
+	hm_entry *entrada = ht->buckets_[indice].entry;
+	assert_timeout(entrada);
+	entrada->valor = valor;
+}
+int hash_map_robin_hood_back_shift_indice_borra(hm_rr_bs_tabla *ht,
+		hm_iter indice) {
+	assert_timeout(indice <= ht->probing_max_ && indice >= ht->probing_min_);
+	uint64_t num_cubetas = ht->num_buckets_;
+	uint64_t prob_max = ht->probing_max_;
+	uint64_t prob_min = ht->probing_max_;
+	uint64_t index_current = indice;
+	hm_entry *entrada = ht->buckets_[index_current].entry;
+	assert_timeout(entrada);
+	free(entrada);
+	uint64_t i = 1;
+	uint64_t index_previous = 0, index_swap = 0;
+	for (i = 1; i < num_cubetas; i++) {
+		index_previous = (index_current + i - 1) % num_cubetas;
+		index_swap = (index_current + i) % num_cubetas;
+		hm_cubeta *cubeta_swap = ht->buckets_ + index_swap;
+		hm_cubeta *cubeta_previous = ht->buckets_ + index_previous;
+		if (cubeta_swap->entry == NULL) {
+			cubeta_previous->entry = NULL;
+			break;
+		}
+		uint64_t distance;
+		if (hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+				index_swap, &distance) != 0) {
+			fprintf(stderr, "Error in FillDistanceToInitIndex()");
+		}
+		if (!distance) {
+			cubeta_previous->entry = NULL;
+			break;
+		}
+		cubeta_previous->entry = cubeta_swap->entry;
+		cubeta_previous->hash = cubeta_swap->hash;
+	}
+	if (i < num_cubetas) {
+		if (index_previous == prob_min) {
+			prob_min++;
+			if (prob_min >= num_cubetas) {
+				prob_min = 0;
+			} else {
+				while (prob_min < num_cubetas && ht->buckets_[prob_min].entry) {
+					prob_min++;
+				}
+				if (prob_min >= num_cubetas) {
+					prob_min = num_cubetas;
+				}
+			}
+			ht->probing_min_ = prob_min;
+		}
+		if (index_previous == prob_max) {
+			prob_max--;
+			if (prob_max >= num_cubetas) {
+				prob_max = num_cubetas;
+			} else {
+				while (((int64_t) prob_max) >= 0 && ht->buckets_[prob_max].entry) {
+					prob_max--;
+				}
+				if (prob_max >= num_cubetas) {
+					prob_max = 0;
+				}
+			}
+			ht->probing_max_ = prob_max;
+		}
+	}
+	ht->num_buckets_used_--;
+	return 0;
+}
+static inline entero_largo hash_map_robin_hood_back_shift_indice_obten_valor(
+		hm_rr_bs_tabla *ht, hm_iter indice) {
+	assert_timeout(indice <= ht->probing_max_ && indice >= ht->probing_min_);
+	hm_entry *entrada = ht->buckets_[indice].entry;
+	assert_timeout(entrada);
+	return entrada->valor;
+}
+static inline bool hash_map_robin_hood_back_shift_esta_vacio(hm_rr_bs_tabla *ht) {
+	assert_timeout(ht->num_buckets_used_ <= ht->num_buckets_);
+	return !ht->num_buckets_used_;
+}
+
+static inline void hash_map_robin_hood_back_shift_reemplazar(hm_rr_bs_tabla *ht,
+		entero_largo llave, entero_largo valor) {
+	hm_iter iter = 0;
+	entero_largo *valor_int = &(entero_largo ) { 0 };
+
+	iter = hash_map_robin_hood_back_shift_obten(ht, llave, valor_int);
+
+	assert_timeout(iter!=HASH_MAP_VALOR_INVALIDO);
+
+	hash_map_robin_hood_back_shift_indice_pon_valor(ht, iter, valor);
+}
+
+static inline void hash_map_robin_hood_back_shift_insertar_nuevo(
+		hm_rr_bs_tabla *ht, entero_largo llave, entero_largo valor) {
+	hm_iter iter = 0;
+	bool nuevo = falso;
+	iter = hash_map_robin_hood_back_shift_pon(ht, llave, valor, &nuevo);
+
+	assert_timeout(iter!=HASH_MAP_VALOR_INVALIDO);
+	assert_timeout(nuevo);
+}
+
+#endif
+
+#if 1
 
 //http://www.thelearningpoint.net/computer-science/data-structures-heaps-with-c-program-source-code
 #define HEAP_SHIT_MAX_NODOS (200*200)
@@ -625,7 +984,7 @@ typedef struct heap_shit {
 	bool min;
 	natural heap_size;
 	heap_shit_nodo heap[HEAP_SHIT_MAX_NODOS];
-	natural idx_en_heap_por_llave[HEAP_SHIT_MAX_LLAVES];
+	hm_rr_bs_tabla *tablon_llave_a_idx_heap;
 } heap_shit;
 
 /*Initialize Heap*/
@@ -635,12 +994,16 @@ static inline heap_shit *heap_shit_init(bool es_min) {
 	heap->heap_size = 0;
 	heap->min = es_min;
 	memset(heap->heap, HEAP_SHIT_VALOR_INVALIDO, sizeof(heap->heap));
-	memset(heap->idx_en_heap_por_llave, HEAP_SHIT_VALOR_INVALIDO,
-			sizeof(heap->idx_en_heap_por_llave));
+	heap->tablon_llave_a_idx_heap = calloc(1, sizeof(hm_rr_bs_tabla));
+	assert_timeout(heap->tablon_llave_a_idx_heap);
+	hash_map_robin_hood_back_shift_init(heap->tablon_llave_a_idx_heap,
+	HEAP_SHIT_MAX_NODOS);
 	return heap;
 }
 
 void heap_shit_fini(heap_shit *heap_ctx) {
+	hash_map_robin_hood_back_shift_fini(heap_ctx->tablon_llave_a_idx_heap);
+	free(heap_ctx->tablon_llave_a_idx_heap);
 	free(heap_ctx);
 }
 
@@ -670,7 +1033,8 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 		heap_shit_nodo *nodo_nuevo) {
 	natural heap_size = heap_ctx->heap_size;
 	heap_shit_nodo *heap = NULL;
-	natural *mapeo_inv = heap_ctx->idx_en_heap_por_llave;
+	hm_rr_bs_tabla *mapeo_inv = heap_ctx->tablon_llave_a_idx_heap;
+	bool nuevo;
 
 	heap = heap_ctx->heap;
 
@@ -697,17 +1061,28 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 		assert_timeout(llave_padre!= HEAP_SHIT_VALOR_INVALIDO);
 
 		heap[now] = heap[idx_padre];
-		mapeo_inv[llave_padre] = now;
+		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre, now);
+		caca_log_debug("llave %d tiene valor %u ", llave_padre, now);
+
 		now = idx_padre;
 	}
 //printf("raise now %u con heap %u y elem %u res %u\n",now,heap[now / 2],element, (unsigned int)heap[now / 2]>(unsigned int)element);
 
 	heap[now] = *nodo_nuevo;
-	mapeo_inv[nodo_nuevo->llave] = now;
+	hash_map_robin_hood_back_shift_insertar_nuevo(mapeo_inv, nodo_nuevo->llave,
+			now);
 
 	heap_ctx->heap_size = heap_size;
-	heap_shit_valida_nodos(heap_ctx);
+//	heap_shit_valida_nodos(heap_ctx);
 }
+
+/*
+ tipo_dato prioridad;
+ tipo_dato llave;
+ void *valor;
+ */
+#define heap_shit_insertar(heap_ctx,prioridad_in,llave_in,valor_in) heap_shit_insert(heap_ctx,&(heap_shit_nodo) {.prioridad=prioridad_in,.llave=llave_in,.valor=valor_in})
+#define heap_shit_insertar_valor_unico(heap_ctx,valor) heap_shit_insertar(heap_ctx,valor,valor,(void *)((entero_largo)valor))
 
 static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) {
 	natural heap_size = heap_ctx->heap_size;
@@ -715,8 +1090,9 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 	heap_shit_nodo minElement = { 0 };
 	heap_shit_nodo lastElement = { 0 };
 	heap_shit_nodo *heap;
-	natural *mapeo_inv = heap_ctx->idx_en_heap_por_llave;
+	hm_rr_bs_tabla *mapeo_inv = heap_ctx->tablon_llave_a_idx_heap;
 	void *resultado;
+	bool nuevo;
 
 	heap = heap_ctx->heap;
 
@@ -767,7 +1143,12 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 			assert_timeout(llave_padre != HEAP_SHIT_VALOR_INVALIDO);
 
 			heap[now] = heap[idx_padre];
-			mapeo_inv[llave_padre] = now;
+
+			hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre,
+					now);
+
+			caca_log_debug("llave %d tiene valor %u", llave_padre, now);
+
 			now = idx_padre;
 		}
 	} else {
@@ -795,7 +1176,11 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 					|| (!heap_ctx->min
 							&& lastElement.prioridad < heap[child].prioridad)) {
 				heap[now] = heap[child];
-				mapeo_inv[heap[child].llave] = now;
+
+				hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
+						heap[child].llave, now);
+				caca_log_debug("llave %d tiene valor %u", heap[child].llave,
+						now);
 			} else /* It fits there */
 			{
 				break;
@@ -803,24 +1188,32 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 		}
 	}
 
-	mapeo_inv[minElement.llave] = HEAP_SHIT_VALOR_INVALIDO;
-	if (heap_size) {
+	hash_map_robin_hood_back_shift_borra(mapeo_inv, minElement.llave);
+	caca_log_debug("borrada llave %d", minElement.llave);
+	if (heap_size && idx_a_borrar != heap_size + 1) {
 		heap[now] = lastElement;
-		mapeo_inv[lastElement.llave] = now;
+		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, lastElement.llave,
+				now);
+		caca_log_debug("llave %d tiene valor %u ", lastElement.llave, now);
 	}
 	heap_ctx->heap_size = heap_size;
-	heap_shit_valida_nodos(heap_ctx);
+	//heap_shit_valida_nodos(heap_ctx);
 	return resultado;
 }
 
 static inline void *heap_shit_borrar_directo(heap_shit *heap_ctx,
 		tipo_dato llave) {
 	natural heap_size = heap_ctx->heap_size;
-	natural (*indices_valores)[HEAP_SHIT_MAX_LLAVES] =
-			&heap_ctx->idx_en_heap_por_llave;
+	hm_rr_bs_tabla *indices_valores = heap_ctx->tablon_llave_a_idx_heap;
+	entero_largo idx_a_borrar;
+
 	assert_timeout(heap_size);
 
-	natural idx_a_borrar = (*indices_valores)[llave];
+	natural idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
+			llave, &idx_a_borrar);
+	caca_log_debug("borrando llave %d en idx %u en idx hm %u", llave,
+			idx_a_borrar, idx_hm);
+	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
 	assert_timeout(idx_a_borrar != HEAP_SHIT_VALOR_INVALIDO);
 
 	return heap_shit_delete(heap_ctx, idx_a_borrar);
@@ -1293,6 +1686,10 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 	free(predecesores);
 
+	if (chosto > ctx->chosto_brinco) {
+		chosto = ctx->chosto_brinco;
+	}
+
 	return chosto;
 }
 
@@ -1569,9 +1966,13 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		natural chosto_vacio_primer_mov = 0;
 		puto_cardinal *vecino_act = vecinos_tmp + i;
 
-		chosto_vacio_primer_mov =
-				huaronverga_chosto_por_busqueda_en_amplitud_brincando(ctx,
-						ctx->matrix_rodeada, vacio, cacao, vecino_act) + 1;
+		if (cacao->coord_xy != vacio->coord_xy) {
+			chosto_vacio_primer_mov =
+					huaronverga_chosto_por_busqueda_en_amplitud_brincando(ctx,
+							ctx->matrix_rodeada, vacio, cacao, vecino_act) + 1;
+		} else {
+			chosto_vacio_primer_mov = 2;
+		}
 
 		vecino_act = heap_shit_borrar_directo(cola_prioridad,
 				huaronverga_compacta_coordenada(vecino_act));
@@ -1642,7 +2043,7 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 					chosto_padre, chosto_padre_hijo+1)
 
 			hvargs->chosto_act_hijo = chosto_hijo;
-//			chosto_hijo = huaronverga_mejora_chosto_hijo(ctx, hvargs);
+			chosto_hijo = huaronverga_mejora_chosto_hijo(ctx, hvargs);
 
 			chosto_act = huaronverga_obten_valor_en_coord(*matrix_chosto_minimo,
 					hijo);
@@ -1663,6 +2064,9 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			}
 		}
 	}
+
+	caca_log_debug("la matrix de chostos kedo\n%s",
+			caca_comun_matrix_a_cadena((tipo_dato *)ctx->matrix_chosto_minimo, ctx->filas_tam, ctx->columnas_tam, HUARONVERGA_MAX_COLUMNAS, CACA_COMUN_BUF_STATICO));
 
 	if (encontrada_salida) {
 		chosto_final = huaronverga_obten_valor_en_coord(

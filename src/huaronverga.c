@@ -1797,7 +1797,10 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
 		puto_cardinal *puto) {
 	bool valido = verdadero;
-	if (huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE || puto->coord_x==HUARONVERGA_VALOR_INVALIDO || puto->coord_y==HUARONVERGA_VALOR_INVALIDO) {
+	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
+			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO ||
+			huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+	) {
 		valido=falso;
 	}
 	return valido;

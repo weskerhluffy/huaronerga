@@ -1580,15 +1580,47 @@ static inline void huaronverga_pon_valor_en_coord_heap(puto_cardinal ***matrix,
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
 
-static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
+static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
 		puto_cardinal *puto) {
 	bool valido = verdadero;
 	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_x
-					< 0||puto->coord_y<0|| puto->coord_x>=ctx->filas_tam || puto->coord_y>=ctx->columnas_tam||
-					huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
-					) {
+			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO || puto->coord_x < 0
+			|| puto->coord_y < 0 || puto->coord_x >= ctx->filas_tam
+			|| puto->coord_y >= ctx->columnas_tam) {
+		valido = falso;
+	}
+	return valido;
+}
+
+static inline bool huaronverga_valida_puto_cardinal_rodeado(
+		huaronverga_ctx *ctx, puto_cardinal *puto) {
+	bool valido = verdadero;
+	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
+			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO || puto->coord_x < 0
+			|| puto->coord_y < 0 || puto->coord_x >= ctx->filas_tam + 4
+			|| puto->coord_y >= ctx->columnas_tam + 4) {
+		valido = falso;
+	}
+	return valido;
+}
+
+static inline bool huaronverga_valida_puto_cardinal_valor_matrix(
+		huaronverga_ctx *ctx, puto_cardinal *puto) {
+	bool valido = verdadero;
+	if (!huaronverga_valida_puto_cardinal(ctx, puto) ||
+	huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+	) {
+		valido = falso;
+	}
+	return valido;
+}
+
+static inline bool huaronverga_valida_puto_cardinal_valor_matrix_rodeada(
+		huaronverga_ctx *ctx, puto_cardinal *puto) {
+	bool valido = verdadero;
+	if (!huaronverga_valida_puto_cardinal_rodeado(ctx, puto) ||
+	huaronverga_obten_valor_en_coord(ctx->matrix_rodeada,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+	) {
 		valido = falso;
 	}
 	return valido;
@@ -1661,7 +1693,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 			if (huaronverga_obten_valor_en_coord(matrix, vecino)== HUARONVERGA_CARACTER_BLOQUE_LIBRE
 			&& !bitch_checa(bvctx,
-					huaronverga_compacta_coordenada(vecino)) && huaronverga_puto_cardinal_valido(ctx, vecino)) {
+					huaronverga_compacta_coordenada(vecino)) && huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx, vecino)) {
 				/*
 				 caca_log_debug("enculando vecino");
 				 */
@@ -1836,7 +1868,8 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		caca_log_debug("el posible abuelo %s",
 				puto_cardinal_a_cadena_buffer_local(posible_abuelo));
 
-		if (!huaronverga_puto_cardinal_valido(ctx, posible_abuelo)) {
+		if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx,
+				posible_abuelo)) {
 			continue;
 		}
 
@@ -1854,7 +1887,7 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 
 		caca_log_debug("posible bisabuelo %s",
 				puto_cardinal_a_cadena_buffer_local(posible_bisabuelo));
-		if (huaronverga_puto_cardinal_valido(ctx,
+		if (huaronverga_valida_puto_cardinal_valor_matrix(ctx,
 				posible_bisabuelo) && posible_bisabuelo->coord_xy != padre->coord_xy) {
 			assert_timeout(
 					posible_bisabuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
@@ -1893,14 +1926,6 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 	return chosto;
 }
 
-static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
-		puto_cardinal *puto) {
-	return puto->coord_x != HUARONVERGA_VALOR_INVALIDO
-
-	&& puto->coord_y != HUARONVERGA_VALOR_INVALIDO
-			&& huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_BLOKEADO;
-}
-
 static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		puto_cardinal *cacao, puto_cardinal *vacio, puto_cardinal *salida) {
 	puto_cardinal (*matrix_predecesores)[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
@@ -1924,9 +1949,9 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		return 0;
 	}
 
-	if (!huaronverga_valida_puto_cardinal(ctx, cacao)
-			|| !huaronverga_valida_puto_cardinal(ctx, vacio)
-			|| !huaronverga_valida_puto_cardinal(ctx, salida)) {
+	if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx, cacao)
+			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, vacio)
+			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, salida)) {
 		return HUARONVERGA_VALOR_INVALIDO;
 	}
 

@@ -162,7 +162,7 @@ void caca_log_debug_func(const char *format, ...) {
 }
 #endif
 
-#ifdef CACA_COMUN_LOG
+#if defined(CACA_COMUN_LOG) && !defined(CACA_COMUN_NO_LOG_ARREGLOS)
 static char *caca_comun_arreglo_a_cadena(tipo_dato *arreglo, int tam_arreglo,
 		char *buffer) {
 	int i;
@@ -1580,6 +1580,20 @@ static inline void huaronverga_pon_valor_en_coord_heap(puto_cardinal ***matrix,
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
 
+static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
+		puto_cardinal *puto) {
+	bool valido = verdadero;
+	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
+			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO
+			|| puto->coord_x
+					< 0||puto->coord_y<0|| puto->coord_x>=ctx->filas_tam || puto->coord_y>=ctx->columnas_tam||
+					huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+					) {
+		valido = falso;
+	}
+	return valido;
+}
+
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 		huaronverga_ctx *ctx,
 		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
@@ -1647,7 +1661,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 			if (huaronverga_obten_valor_en_coord(matrix, vecino)== HUARONVERGA_CARACTER_BLOQUE_LIBRE
 			&& !bitch_checa(bvctx,
-					huaronverga_compacta_coordenada(vecino))) {
+					huaronverga_compacta_coordenada(vecino)) && huaronverga_puto_cardinal_valido(ctx, vecino)) {
 				/*
 				 caca_log_debug("enculando vecino");
 				 */
@@ -1792,20 +1806,6 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 	}
 
 	return res;
-}
-
-static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
-		puto_cardinal *puto) {
-	bool valido = verdadero;
-	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_x
-					< 0||puto->coord_y<0|| puto->coord_x>=ctx->filas_tam || puto->coord_y>=ctx->columnas_tam||
-					huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
-					) {
-		valido = falso;
-	}
-	return valido;
 }
 
 static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,

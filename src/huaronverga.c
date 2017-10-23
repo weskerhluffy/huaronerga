@@ -1657,10 +1657,10 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 	bvctx = bitch_init();
 
-	predecesores = calloc(HUARONVERGA_MAX_FILAS, sizeof(puto_cardinal **));
+	predecesores = calloc(HUARONVERGA_MAX_FILAS + 4, sizeof(puto_cardinal **));
 	assert_timeout(predecesores);
-	for (int i = 0; i < HUARONVERGA_MAX_FILAS; i++) {
-		predecesores[i] = calloc(HUARONVERGA_MAX_COLUMNAS,
+	for (int i = 0; i < HUARONVERGA_MAX_FILAS + 4; i++) {
+		predecesores[i] = calloc(HUARONVERGA_MAX_COLUMNAS + 4,
 				sizeof(puto_cardinal *));
 		assert_timeout(predecesores[i]);
 	}

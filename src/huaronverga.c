@@ -1794,6 +1794,15 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 	return res;
 }
 
+static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
+		puto_cardinal *puto) {
+	bool valido = verdadero;
+	if (huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE || puto->coord_x==HUARONVERGA_VALOR_INVALIDO || puto->coord_y==HUARONVERGA_VALOR_INVALIDO) {
+		valido=falso;
+	}
+	return valido;
+}
+
 static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		huaronverga_args *hvargs) {
 	tipo_dato chosto = hvargs->chosto_act_hijo;
@@ -1822,7 +1831,7 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		caca_log_debug("el posible abuelo %s",
 				puto_cardinal_a_cadena_buffer_local(posible_abuelo));
 
-		if (huaronverga_obten_valor_en_coord(ctx->matrix,posible_abuelo)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE) {
+		if (!huaronverga_puto_cardinal_valido(ctx, posible_abuelo)) {
 			continue;
 		}
 
@@ -1840,8 +1849,8 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 
 		caca_log_debug("posible bisabuelo %s",
 				puto_cardinal_a_cadena_buffer_local(posible_bisabuelo));
-		if (posible_bisabuelo->coord_x != HUARONVERGA_VALOR_INVALIDO
-				&& posible_bisabuelo->coord_xy != padre->coord_xy) {
+		if (huaronverga_puto_cardinal_valido(ctx,
+				posible_bisabuelo) && posible_bisabuelo->coord_xy != padre->coord_xy) {
 			assert_timeout(
 					posible_bisabuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
 

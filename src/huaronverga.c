@@ -1798,10 +1798,12 @@ static inline bool huaronverga_puto_cardinal_valido(huaronverga_ctx *ctx,
 		puto_cardinal *puto) {
 	bool valido = verdadero;
 	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO ||
-			huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
-	) {
-		valido=falso;
+			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO
+			|| puto->coord_x
+					< 0||puto->coord_y<0|| puto->coord_x>=ctx->filas_tam || puto->coord_y>=ctx->columnas_tam||
+					huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+					) {
+		valido = falso;
 	}
 	return valido;
 }

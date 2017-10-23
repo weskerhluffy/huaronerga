@@ -1453,6 +1453,19 @@ static inline tipo_dato huaronverga_compacta_coordenada(puto_cardinal *nodo) {
 	return coord_xy_compacta;
 }
 
+#define HEAP_SHIT_MAX_LLAVES_RODEADAS ((204<<8)|204)
+static inline tipo_dato huaronverga_compacta_coordenada_rodeada(
+		puto_cardinal *nodo) {
+	tipo_dato coord_xy_compacta = 0;
+
+	coord_xy_compacta = puto_cardinal_compacta_a_corto(nodo)
+			& ((tipo_dato) 0xffff);
+
+	assert_timeout(coord_xy_compacta<=HEAP_SHIT_MAX_LLAVES_RODEADAS);
+
+	return coord_xy_compacta;
+}
+
 static inline huaronverga_caso_familiar huaronverga_obten_caso_familiar(
 		huaronverga_args *hvargs) {
 	puto_cardinal *abuelo = hvargs->abuelo;
@@ -1693,13 +1706,13 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 			if (huaronverga_obten_valor_en_coord(matrix, vecino)== HUARONVERGA_CARACTER_BLOQUE_LIBRE
 			&& !bitch_checa(bvctx,
-					huaronverga_compacta_coordenada(vecino)) && huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx, vecino)) {
+					huaronverga_compacta_coordenada_rodeada(vecino)) && huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx, vecino)) {
 				/*
 				 caca_log_debug("enculando vecino");
 				 */
 				queue_encula(kha, vecino);
 				huaronverga_pon_valor_en_coord_heap(predecesores, vecino, act);
-				bitch_asigna(bvctx, huaronverga_compacta_coordenada(vecino));
+				bitch_asigna(bvctx, huaronverga_compacta_coordenada_rodeada(vecino));
 				if (vecino->coord_xy == fin_rodeado->coord_xy) {
 					se_encontro_fin = verdadero;
 					break;

@@ -108,7 +108,7 @@ static inline bitch_vector_ctx *bitch_init() {
                         "mov %%rdx,%%rcx\n"\
                         "shl %%cl,%[resul]\n"\
                         "andq (%[vectors],%%rax,8),%[resul]\n"\
-                        : [resul] "=b" (resultado)\
+                        : [resul] "=r" (resultado)\
                         : [bitch_posi] "r" (posicion), [vectors] "r" (bits)\
             :"rax","rdx","rcx","r8")
 

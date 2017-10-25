@@ -10,4 +10,5 @@ command alias nodos memory read -s 16 -f int64_t -c 31 me-> odes
 #settings set target.run-args < caca2.txt
 #settings set target.run-args < caca_debug.txt
 #settings set target.run-args < caca_debug_2.txt
-settings set target.run-args < caca_grande_random.txt
+#settings set target.run-args < caca_grande_random.txt
+settings set target.run-args < caca_shame_17.txt

@@ -115,8 +115,15 @@ static inline bitch_vector_ctx *bitch_init() {
 static inline bool bitch_checa(bitch_vector_ctx *bvctx,
 		entero_largo_sin_signo posicion) {
 	entero_largo_sin_signo resultado = 0;
+	natural idx_arreglo = 0;
+	natural idx_registro = 0;
 
-	bitch_checa_int(bvctx->bitch_mapa, posicion, resultado);
+	idx_arreglo = posicion / 64;
+	idx_registro = posicion % 64;
+
+	//bitch_checa_int(bvctx->bitch_mapa, posicion, resultado);
+	resultado = bvctx->bitch_mapa[idx_arreglo]
+			& (bitch_vector) ((bitch_vector) 1 << idx_registro);
 
 	return !!resultado;
 }

@@ -1053,15 +1053,16 @@ typedef struct huaronverga_chosto_bfs_elem {
 huaronverga_chosto_bfs_elem chostos_queue_elems[HUARONVERGA_MAX_ELEMENTOS_RODEADOS
 		+ 1] = { HUARONVERGA_VALOR_INVALIDO };
 
+natural chostos_bfs[HUARONVERGA_MAX_LLAVE_RODEADA+1] = {
+HUARONVERGA_VALOR_INVALIDO };
+
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 		huaronverga_ctx *ctx,
 		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
 		puto_cardinal *inicio, puto_cardinal *fin,
-		huaronverga_chosto_bfs_elem *chostos_queue_elems) {
+		huaronverga_chosto_bfs_elem *chostos_queue_elems, natural *chostos) {
 	tipo_dato chosto = 0;
 	queue_t *kha = NULL;
-	puto_cardinal ***predecesores = NULL;
-	puto_cardinal *predecesor_actual = NULL;
 	bool se_encontro_fin = falso;
 	natural putos_tmp_cnt = 0;
 	bitch_vector_ctx *bvctx = NULL;
@@ -1081,14 +1082,6 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 	}
 
 	bvctx = bitch_init(HUARONVERGA_MAX_LLAVE_RODEADA);
-
-	predecesores = calloc(HUARONVERGA_MAX_FILAS + 4, sizeof(puto_cardinal **));
-	assert_timeout(predecesores);
-	for (int i = 0; i < HUARONVERGA_MAX_FILAS + 4; i++) {
-		predecesores[i] = calloc(HUARONVERGA_MAX_COLUMNAS + 4,
-				sizeof(puto_cardinal *));
-		assert_timeout(predecesores[i]);
-	}
 
 	kha = queue_construye(HUARONVERGA_MAX_FILAS * HUARONVERGA_MAX_COLUMNAS);
 
@@ -1120,7 +1113,8 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 				putos_tmp_cnt++;
 				vecino_elem->chosto = act_elem->chosto + 1;
 				queue_encula(kha, vecino_elem);
-				huaronverga_pon_valor_en_coord_heap(predecesores, vecino, act);
+				chostos[huaronverga_compacta_coordenada_rodeada(vecino)] =
+						vecino_elem->chosto;
 				bitch_asigna(bvctx,
 						huaronverga_compacta_coordenada_rodeada(vecino));
 				if (vecino->coord_xy == fin_rodeado->coord_xy) {
@@ -1135,25 +1129,13 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 	}
 
 	if (se_encontro_fin) {
-		predecesor_actual = fin_rodeado;
-		while (predecesor_actual->coord_xy != inicio_rodeado->coord_xy) {
-			predecesor_actual = huaronverga_obten_valor_en_coord(predecesores,
-					predecesor_actual);
-			chosto++;
-		}
-		assert_timeout(predecesor_actual->coord_xy==inicio_rodeado->coord_xy);
+		chosto = chostos[huaronverga_compacta_coordenada_rodeada(fin_rodeado)];
 	} else {
 		chosto = ctx->chosto_brinco;
 	}
 
 	queue_destruye(kha);
 	bitch_fini(bvctx);
-
-	for (int i = 0; i < HUARONVERGA_MAX_FILAS; i++) {
-		free(predecesores[i]);
-	}
-
-	free(predecesores);
 
 	if (chosto > ctx->chosto_brinco) {
 		chosto = ctx->chosto_brinco;
@@ -1185,7 +1167,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud_brincando(
 	HUARONVERGA_CARACTER_BLOQUE_BLOKEADO);
 
 	chosto = huaronverga_chosto_por_busqueda_en_amplitud(ctx, matrix, inicio,
-			fin, chostos_queue_elems);
+			fin, chostos_queue_elems, chostos_bfs);
 
 	huaronverga_pon_valor_en_coord_stack_byteme(matrix, invalido_rodeado,
 			valor_ant);

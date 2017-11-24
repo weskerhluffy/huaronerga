@@ -776,28 +776,42 @@ static inline void heap_shit_intercambia_nodos(heap_shit *ctx,
 }
 
 #define heap_shit_prioridad_en_idx_heap(heap,idx) ((heap)[idx].prioridad)
+#define heap_shit_llave_en_idx_heap(heap,idx) ((heap)[idx].llave)
 
 static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
-		tipo_dato idx_a_subir) {
+		tipo_dato idx_a_subir, hm_iter idx_en_ht) {
 	natural now = idx_a_subir;
 	heap_shit_nodo *heap = ctx->heap;
 	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
 	natural idx_padre = heap_shit_idx_padre(now);
+	heap_shit_nodo *nodo_a_subir = &(heap_shit_nodo ) { 0 };
 
-	while (heap_shit_nodo_valido(heap + idx_padre)
-			&& ((ctx->min && heap_shit_prioridad_en_idx_heap(heap,
-					idx_padre) > heap_shit_prioridad_en_idx_heap(heap, now))
-					|| (!ctx->min
-							&& ( heap_shit_prioridad_en_idx_heap(heap,
-									idx_padre)
-									< heap_shit_prioridad_en_idx_heap(heap, now))))) {
+	*nodo_a_subir = heap[idx_a_subir];
 
-		heap_shit_intercambia_nodos(ctx, idx_padre, now);
+	/*
+	 while (heap_shit_nodo_valido(heap + idx_padre)
+	 && ((ctx->min && heap_shit_prioridad_en_idx_heap(heap, idx_padre) > nodo_a_subir->prioridad
+	 )
+	 || (!ctx->min && ( heap_shit_prioridad_en_idx_heap(heap,
+	 idx_padre) < nodo_a_subir->prioridad))))
+	 */
+	while (idx_padre
+			&& heap_shit_prioridad_en_idx_heap(heap, idx_padre)
+					> nodo_a_subir->prioridad) {
+
+//		heap_shit_intercambia_nodos(ctx, idx_padre, now);
+
+		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
+				heap_shit_llave_en_idx_heap(heap, idx_padre), now);
+		heap[now] = heap[idx_padre];
 
 		now = idx_padre;
 		idx_padre = heap_shit_idx_padre(now);
 	}
 
+//	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a_subir->llave, now);
+	hash_map_robin_hood_back_shift_indice_pon_valor(mapeo_inv, idx_en_ht, now);
+	heap[now] = *nodo_a_subir;
 }
 
 static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
@@ -805,13 +819,13 @@ static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
 
 	natural heap_size = ctx->heap_size;
 	hm_rr_bs_tabla *indices_valores = ctx->tablon_llave_a_idx_heap;
-	entero_largo idx_a_subir = 0;
-	heap_shit_nodo *minElement = NULL;
 	heap_shit_nodo *heap = ctx->heap;
+	entero_largo idx_a_subir;
+	heap_shit_nodo *minElement;
 
 	assert_timeout(heap_size);
 
-	natural idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
+	hm_iter idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
 			llave, &idx_a_subir);
 	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
 	assert_timeout(idx_a_subir != HEAP_SHIT_VALOR_INVALIDO);
@@ -819,7 +833,7 @@ static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
 	minElement = heap + idx_a_subir;
 	minElement->prioridad = prioridad_nueva;
 
-	heap_shit_sube_para_arriba(ctx, idx_a_subir);
+	heap_shit_sube_para_arriba(ctx, idx_a_subir, idx_hm);
 }
 
 #endif

@@ -639,6 +639,56 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 	heap_ctx->heap_size = heap_size;
 }
 
+#define heap_shit_prioridad_en_idx_heap(heap,idx) ((heap)[idx].prioridad)
+#define heap_shit_llave_en_idx_heap(heap,idx) ((heap)[idx].llave)
+
+static inline void heap_shit_baja_para_abajo(heap_shit *ctx,
+		tipo_dato idx_a_bajar, hm_iter idx_en_ht) {
+	natural now = idx_a_bajar;
+	heap_shit_nodo *heap = ctx->heap;
+	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+	natural idx_padre = heap_shit_idx_padre(now);
+	heap_shit_nodo *nodo_a_bajar = &(heap_shit_nodo ) { 0 };
+	natural heap_size = ctx->heap_size;
+	natural child;
+
+	*nodo_a_bajar = heap[idx_a_bajar];
+
+	for (now = idx_a_bajar; heap_shit_idx_hijo_izq(now) <= heap_size; now =
+			child) {
+		child = heap_shit_idx_hijo_izq(now);
+		if (child != heap_size
+				&& ((ctx->min
+						&&
+						heap_shit_prioridad_en_idx_heap(heap, child + 1)
+								< heap_shit_prioridad_en_idx_heap(heap, child))
+						|| (!ctx->min
+								&&
+								heap_shit_prioridad_en_idx_heap(heap, child + 1)
+										> heap_shit_prioridad_en_idx_heap(heap,
+												child)))) {
+			child++;
+		}
+		if ((ctx->min
+				&& nodo_a_bajar->prioridad
+						> heap_shit_prioridad_en_idx_heap(heap, child))
+				|| (!ctx->min
+						&& nodo_a_bajar->prioridad
+								< heap_shit_prioridad_en_idx_heap(heap, child))) {
+			heap[now] = heap[child];
+
+			hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
+					heap[child].llave, now);
+		} else {
+			break;
+		}
+	}
+
+//	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a_bajar->llave, now);
+	hash_map_robin_hood_back_shift_indice_pon_valor(mapeo_inv, idx_en_ht, now);
+	heap[now] = *nodo_a_bajar;
+}
+
 static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) {
 	natural heap_size = heap_ctx->heap_size;
 	natural child, now;
@@ -774,9 +824,6 @@ static inline void heap_shit_intercambia_nodos(heap_shit *ctx,
 	*nodo_b = nodo_tmp;
 
 }
-
-#define heap_shit_prioridad_en_idx_heap(heap,idx) ((heap)[idx].prioridad)
-#define heap_shit_llave_en_idx_heap(heap,idx) ((heap)[idx].llave)
 
 static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
 		tipo_dato idx_a_subir, hm_iter idx_en_ht) {

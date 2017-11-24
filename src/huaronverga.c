@@ -746,6 +746,82 @@ static inline void *heap_shit_borra_torpe(heap_shit *heap_ctx) {
 	}
 }
 
+static inline void heap_shit_intercambia_nodos(heap_shit *ctx,
+		natural idx_nodo_a, natural idx_nodo_b) {
+	heap_shit_nodo *heap = ctx->heap;
+	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+	natural heap_size = ctx->heap_size;
+
+	assert_timeout(heap_size);
+	assert_timeout(idx_nodo_a <= heap_size);
+	assert_timeout(idx_nodo_b <= heap_size);
+
+	heap_shit_nodo *nodo_a = heap + idx_nodo_a;
+	heap_shit_nodo *nodo_b = heap + idx_nodo_b;
+	heap_shit_nodo nodo_tmp = { 0 };
+
+	heap_shit_nodo_valido(nodo_a);
+	heap_shit_nodo_valido(nodo_b);
+	nodo_tmp = *nodo_a;
+	assert_timeout(nodo_a->llave!= HEAP_SHIT_VALOR_INVALIDO);
+	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a->llave,
+			idx_nodo_b);
+
+	*nodo_a = *nodo_b;
+	assert_timeout(nodo_b->llave!= HEAP_SHIT_VALOR_INVALIDO);
+	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_b->llave,
+			idx_nodo_a);
+	*nodo_b = nodo_tmp;
+
+}
+
+#define heap_shit_prioridad_en_idx_heap(heap,idx) ((heap)[idx].prioridad)
+
+static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
+		tipo_dato idx_a_subir) {
+	natural now = idx_a_subir;
+	heap_shit_nodo *heap = ctx->heap;
+	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+	natural idx_padre = heap_shit_idx_padre(now);
+
+	while (heap_shit_nodo_valido(heap + idx_padre)
+			&& ((ctx->min && heap_shit_prioridad_en_idx_heap(heap,
+					idx_padre) > heap_shit_prioridad_en_idx_heap(heap, now))
+					|| (!ctx->min
+							&& ( heap_shit_prioridad_en_idx_heap(heap,
+									idx_padre)
+									< heap_shit_prioridad_en_idx_heap(heap, now))))) {
+
+		heap_shit_intercambia_nodos(ctx, idx_padre, now);
+
+		now = idx_padre;
+		idx_padre = heap_shit_idx_padre(now);
+	}
+
+}
+
+static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
+		tipo_dato prioridad_nueva) {
+
+	natural heap_size = ctx->heap_size;
+	hm_rr_bs_tabla *indices_valores = ctx->tablon_llave_a_idx_heap;
+	entero_largo idx_a_subir = 0;
+	heap_shit_nodo *minElement = NULL;
+	heap_shit_nodo *heap = ctx->heap;
+
+	assert_timeout(heap_size);
+
+	natural idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
+			llave, &idx_a_subir);
+	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
+	assert_timeout(idx_a_subir != HEAP_SHIT_VALOR_INVALIDO);
+
+	minElement = heap + idx_a_subir;
+	minElement->prioridad = prioridad_nueva;
+
+	heap_shit_sube_para_arriba(ctx, idx_a_subir);
+}
+
 #endif
 
 #if 1
@@ -1695,12 +1771,17 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 						*matrix_predecesores, hijo, padre);
 				huaronverga_pon_valor_en_coord_stack_natural(
 						*matrix_chosto_minimo, hijo, chosto_hijo);
-				hijo = heap_shit_borrar_directo(cola_prioridad,
-						huaronverga_compacta_coordenada(hijo));
-				heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {
-								.prioridad = chosto_hijo, .llave =
-										huaronverga_compacta_coordenada(hijo),
-								.valor = hijo });
+				/*
+				 hijo = heap_shit_borrar_directo(cola_prioridad,
+				 huaronverga_compacta_coordenada(hijo));
+				 heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {
+				 .prioridad = chosto_hijo, .llave =
+				 huaronverga_compacta_coordenada(hijo),
+				 .valor = hijo });
+				 */
+
+				heap_shit_altera_prioridad(cola_prioridad,
+						huaronverga_compacta_coordenada(hijo), chosto_hijo);
 			}
 		}
 	}

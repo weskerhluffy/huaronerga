@@ -4,11 +4,11 @@ env MALLOC_PERMIT_INSANE_REQUESTS=1
 command alias nodos memory read -s 16 -f int64_t -c 31 me-> odes
 
 #settings set target.run-args < caca_shame_1.txt
-settings set target.run-args < caca.txt
+#settings set target.run-args < caca.txt
 #settings set target.run-args < caca14_b.txt
 #settings set target.run-args < caca14.txt
 #settings set target.run-args < caca2.txt
 #settings set target.run-args < caca_debug.txt
 #settings set target.run-args < caca_debug_2.txt
-#settings set target.run-args < caca_grande_random.txt
+settings set target.run-args < caca_grande_random.txt
 #settings set target.run-args < caca_shame_17_a.txt

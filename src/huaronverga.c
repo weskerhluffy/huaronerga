@@ -551,7 +551,7 @@ static inline void hash_map_robin_hood_back_shift_insertar_nuevo(
 
 #if 1
 
-#define HEAP_SHIT_MAX_NODOS (200*200)
+#define HEAP_SHIT_MAX_NODOS (204|(204<<8))
 #define HEAP_SHIT_MAX_LLAVES HV_MAX_LLAVE
 #define HEAP_SHIT_VALOR_INVALIDO CACA_COMUN_VALOR_INVALIDO
 
@@ -565,7 +565,11 @@ typedef struct heap_shit {
 	bool min;
 	natural heap_size;
 	heap_shit_nodo heap[HEAP_SHIT_MAX_NODOS];
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *tablon_llave_a_idx_heap;
+#else
+	natural mapa_llave_a_idx_heap[HEAP_SHIT_MAX_NODOS];
+#endif
 } heap_shit;
 
 static inline heap_shit *heap_shit_init(bool es_min) {
@@ -574,16 +578,23 @@ static inline heap_shit *heap_shit_init(bool es_min) {
 	heap->heap_size = 0;
 	heap->min = es_min;
 	memset(heap->heap, HEAP_SHIT_VALOR_INVALIDO, sizeof(heap->heap));
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	heap->tablon_llave_a_idx_heap = calloc(1, sizeof(hm_rr_bs_tabla));
 	assert_timeout(heap->tablon_llave_a_idx_heap);
-	hash_map_robin_hood_back_shift_init(heap->tablon_llave_a_idx_heap,
-	HEAP_SHIT_MAX_NODOS);
+	hash_map_robin_hood_back_shift_init(heap->tablon_llave_a_idx_heap, HEAP_SHIT_MAX_NODOS);
+#else
+	for (int i = 0; i < HEAP_SHIT_MAX_NODOS; i++) {
+		heap->mapa_llave_a_idx_heap[i] = HEAP_SHIT_VALOR_INVALIDO;
+	}
+#endif
 	return heap;
 }
 
 void heap_shit_fini(heap_shit *heap_ctx) {
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_fini(heap_ctx->tablon_llave_a_idx_heap);
 	free(heap_ctx->tablon_llave_a_idx_heap);
+#endif
 	free(heap_ctx);
 }
 
@@ -606,7 +617,11 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 		heap_shit_nodo *nodo_nuevo) {
 	natural heap_size = heap_ctx->heap_size;
 	heap_shit_nodo *heap = NULL;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *mapeo_inv = heap_ctx->tablon_llave_a_idx_heap;
+#else
+	natural *mapeo_inv = heap_ctx->mapa_llave_a_idx_heap;
+#endif
 	bool nuevo;
 
 	heap = heap_ctx->heap;
@@ -627,14 +642,21 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 		assert_timeout(llave_padre!= HEAP_SHIT_VALOR_INVALIDO);
 
 		heap[now] = heap[idx_padre];
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre, now);
-
+#else
+		mapeo_inv[llave_padre] = now;
+#endif
 		now = idx_padre;
 	}
 
 	heap[now] = *nodo_nuevo;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_insertar_nuevo(mapeo_inv, nodo_nuevo->llave,
 			now);
+#else
+	mapeo_inv[nodo_nuevo->llave] = now;
+#endif
 
 	heap_ctx->heap_size = heap_size;
 }
@@ -646,7 +668,11 @@ static inline void heap_shit_baja_para_abajo(heap_shit *ctx,
 		tipo_dato idx_a_bajar, hm_iter idx_en_ht) {
 	natural now = idx_a_bajar;
 	heap_shit_nodo *heap = ctx->heap;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+#else
+	natural *mapeo_inv = ctx->mapa_llave_a_idx_heap;
+#endif
 	natural idx_padre = heap_shit_idx_padre(now);
 	heap_shit_nodo *nodo_a_bajar = &(heap_shit_nodo ) { 0 };
 	natural heap_size = ctx->heap_size;
@@ -677,15 +703,22 @@ static inline void heap_shit_baja_para_abajo(heap_shit *ctx,
 								< heap_shit_prioridad_en_idx_heap(heap, child))) {
 			heap[now] = heap[child];
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 			hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
 					heap[child].llave, now);
+#else
+			mapeo_inv[heap_shit_llave_en_idx_heap(heap, child)] = now;
+#endif
 		} else {
 			break;
 		}
 	}
 
-//	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a_bajar->llave, now);
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_indice_pon_valor(mapeo_inv, idx_en_ht, now);
+#else
+	mapeo_inv[nodo_a_bajar->llave] = now;
+#endif
 	heap[now] = *nodo_a_bajar;
 }
 
@@ -695,7 +728,11 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 	heap_shit_nodo minElement = { 0 };
 	heap_shit_nodo lastElement = { 0 };
 	heap_shit_nodo *heap;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *mapeo_inv = heap_ctx->tablon_llave_a_idx_heap;
+#else
+	natural *mapeo_inv = heap_ctx->mapa_llave_a_idx_heap;
+#endif
 	void *resultado;
 	bool nuevo;
 
@@ -730,8 +767,12 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 
 			heap[now] = heap[idx_padre];
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 			hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre,
 					now);
+#else
+			mapeo_inv[llave_padre] = now;
+#endif
 
 			now = idx_padre;
 		}
@@ -753,19 +794,31 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 							&& lastElement.prioridad < heap[child].prioridad)) {
 				heap[now] = heap[child];
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 				hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
 						heap[child].llave, now);
+#else
+				mapeo_inv[heap_shit_llave_en_idx_heap(heap, child)] = now;
+#endif
 			} else {
 				break;
 			}
 		}
 	}
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_borra(mapeo_inv, minElement.llave);
+#else
+	mapeo_inv[minElement.llave] = HEAP_SHIT_VALOR_INVALIDO;
+#endif
 	if (heap_size && idx_a_borrar != heap_size + 1) {
 		heap[now] = lastElement;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, lastElement.llave,
 				now);
+#else
+		mapeo_inv[lastElement.llave] = now;
+#endif
 	}
 	heap_ctx->heap_size = heap_size;
 	return resultado;
@@ -774,14 +827,22 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 static inline void *heap_shit_borrar_directo(heap_shit *heap_ctx,
 		tipo_dato llave) {
 	natural heap_size = heap_ctx->heap_size;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *indices_valores = heap_ctx->tablon_llave_a_idx_heap;
+#else
+	natural *indices_valores = heap_ctx->mapa_llave_a_idx_heap;
+#endif
 	entero_largo idx_a_borrar;
 
 	assert_timeout(heap_size);
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	natural idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
 			llave, &idx_a_borrar);
 	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
+#else
+	idx_a_borrar = indices_valores[llave];
+#endif
 	assert_timeout(idx_a_borrar != HEAP_SHIT_VALOR_INVALIDO);
 
 	return heap_shit_delete(heap_ctx, idx_a_borrar);
@@ -799,7 +860,11 @@ static inline void *heap_shit_borra_torpe(heap_shit *heap_ctx) {
 static inline void heap_shit_intercambia_nodos(heap_shit *ctx,
 		natural idx_nodo_a, natural idx_nodo_b) {
 	heap_shit_nodo *heap = ctx->heap;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+#else
+	natural *mapeo_inv = ctx->mapa_llave_a_idx_heap;
+#endif
 	natural heap_size = ctx->heap_size;
 
 	assert_timeout(heap_size);
@@ -814,22 +879,39 @@ static inline void heap_shit_intercambia_nodos(heap_shit *ctx,
 	heap_shit_nodo_valido(nodo_b);
 	nodo_tmp = *nodo_a;
 	assert_timeout(nodo_a->llave!= HEAP_SHIT_VALOR_INVALIDO);
+
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a->llave,
 			idx_nodo_b);
+#else
+	mapeo_inv[nodo_a->llave] = idx_nodo_b;
+#endif
 
 	*nodo_a = *nodo_b;
 	assert_timeout(nodo_b->llave!= HEAP_SHIT_VALOR_INVALIDO);
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_b->llave,
 			idx_nodo_a);
+#else
+	mapeo_inv[nodo_b->llave] = idx_nodo_a;
+#endif
 	*nodo_b = nodo_tmp;
 
 }
 
 static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
-		tipo_dato idx_a_subir, hm_iter idx_en_ht) {
+		tipo_dato idx_a_subir
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
+		, hm_iter idx_en_ht
+#endif
+		) {
 	natural now = idx_a_subir;
 	heap_shit_nodo *heap = ctx->heap;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *mapeo_inv = ctx->tablon_llave_a_idx_heap;
+#else
+	natural *mapeo_inv = ctx->mapa_llave_a_idx_heap;
+#endif
 	natural idx_padre = heap_shit_idx_padre(now);
 	heap_shit_nodo *nodo_a_subir = &(heap_shit_nodo ) { 0 };
 
@@ -848,16 +930,23 @@ static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
 
 //		heap_shit_intercambia_nodos(ctx, idx_padre, now);
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
 				heap_shit_llave_en_idx_heap(heap, idx_padre), now);
+#else
+		mapeo_inv[heap_shit_llave_en_idx_heap(heap, idx_padre)] = now;
+#endif
 		heap[now] = heap[idx_padre];
 
 		now = idx_padre;
 		idx_padre = heap_shit_idx_padre(now);
 	}
 
-//	hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, nodo_a_subir->llave, now);
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hash_map_robin_hood_back_shift_indice_pon_valor(mapeo_inv, idx_en_ht, now);
+#else
+	mapeo_inv[nodo_a_subir->llave] = now;
+#endif
 	heap[now] = *nodo_a_subir;
 }
 
@@ -865,22 +954,34 @@ static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
 		tipo_dato prioridad_nueva) {
 
 	natural heap_size = ctx->heap_size;
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_rr_bs_tabla *indices_valores = ctx->tablon_llave_a_idx_heap;
+#else
+	natural *indices_valores = ctx->mapa_llave_a_idx_heap;
+#endif
 	heap_shit_nodo *heap = ctx->heap;
 	entero_largo idx_a_subir;
 	heap_shit_nodo *minElement;
 
 	assert_timeout(heap_size);
 
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
 	hm_iter idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
 			llave, &idx_a_subir);
 	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
+#else
+	idx_a_subir = indices_valores[llave];
+#endif
 	assert_timeout(idx_a_subir != HEAP_SHIT_VALOR_INVALIDO);
 
 	minElement = heap + idx_a_subir;
 	minElement->prioridad = prioridad_nueva;
 
-	heap_shit_sube_para_arriba(ctx, idx_a_subir, idx_hm);
+	heap_shit_sube_para_arriba(ctx, idx_a_subir
+#ifdef HEAP_SHIT_MAPEO_COMPLETO
+			, idx_hm
+#endif
+			);
 }
 
 #endif

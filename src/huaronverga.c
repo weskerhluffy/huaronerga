@@ -73,8 +73,8 @@ typedef enum BOOLEANOS {
 
 #endif
 
-#define HUARONVERGA_MAX_LLAVE (200|((200)<<8))
-#define HUARONVERGA_MAX_LLAVE_RODEADA (204|((204)<<8))
+#define HV_MAX_LLAVE (200|((200)<<8))
+#define HV_MAX_LLAVE_RODEADA (204|((204)<<8))
 
 #if 1
 
@@ -231,22 +231,22 @@ bool queue_encula(queue_t *pQueue, void *mierda) {
 
 #endif
 
-typedef struct puto_cardinal {
+typedef struct pcrd {
 	union {
 		struct {
-			int coordenada_y_puto_cardinal;
-			int coordenada_x_puto_cardinal;
-		} separados_puto_cardinal;
-		entero_largo coordenadas_juntas_puto_cardinal;
-	} datos_puto_cardinal;
+			int coordenada_y_pcrd;
+			int coordenada_x_pcrd;
+		} separados_pcrd;
+		entero_largo coordenadas_juntas_pcrd;
+	} datos_pcrd;
 	void *extra;
-} puto_cardinal;
+} pcrd;
 
-#define coord_x datos_puto_cardinal.separados_puto_cardinal.coordenada_x_puto_cardinal
-#define coord_y datos_puto_cardinal.separados_puto_cardinal.coordenada_y_puto_cardinal
-#define coord_xy datos_puto_cardinal.coordenadas_juntas_puto_cardinal
+#define coord_x datos_pcrd.separados_pcrd.coordenada_x_pcrd
+#define coord_y datos_pcrd.separados_pcrd.coordenada_y_pcrd
+#define coord_xy datos_pcrd.coordenadas_juntas_pcrd
 
-static inline short puto_cardinal_compacta_a_corto(puto_cardinal *nodo) {
+static inline short pcrd_compacta_a_corto(pcrd *nodo) {
 	int coord_xy_compacta = 0;
 
 	coord_xy_compacta = (nodo->coord_x << 8) | nodo->coord_y;
@@ -254,7 +254,7 @@ static inline short puto_cardinal_compacta_a_corto(puto_cardinal *nodo) {
 	return coord_xy_compacta;
 }
 
-#define puto_cardinal_a_cadena_buffer_local(puto) puto_cardinal_a_cadena((puto),CACA_COMUN_BUF_STATICO)
+#define pcrd_a_cadena_buffer_local(puto) pcrd_a_cadena((puto),CACA_COMUN_BUF_STATICO)
 
 #if 1
 typedef natural hm_iter;
@@ -267,21 +267,21 @@ typedef struct hash_map_cubeta {
 	uint64_t hash;
 	hm_entry *entry;
 } hm_cubeta;
-typedef struct hash_map_robin_hood_back_shift {
+typedef struct hmrh {
 	hm_cubeta *buckets_;
 	uint64_t num_buckets_;
 	uint64_t num_buckets_used_;
 	uint64_t probing_min_;
 	uint64_t probing_max_;
 } hm_rr_bs_tabla;
-int hash_map_robin_hood_back_shift_init(hm_rr_bs_tabla *ht, int num_cubetas) {
+int hmrh_init(hm_rr_bs_tabla *ht, int num_cubetas) {
 	ht->num_buckets_ = num_cubetas;
 	ht->buckets_ = (hm_cubeta *) calloc(ht->num_buckets_, sizeof(hm_cubeta));
 	ht->num_buckets_used_ = 0;
 	ht->probing_max_ = num_cubetas;
 	return 0;
 }
-int hash_map_robin_hood_back_shift_fini(hm_rr_bs_tabla *ht) {
+int hmrh_fini(hm_rr_bs_tabla *ht) {
 	if (ht->buckets_ != NULL) {
 		for (uint32_t i = 0; i < ht->num_buckets_; i++) {
 			if (ht->buckets_[i].entry != NULL) {
@@ -293,7 +293,7 @@ int hash_map_robin_hood_back_shift_fini(hm_rr_bs_tabla *ht) {
 	}
 	return 0;
 }
-static inline int hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(
+static inline int hmrh_llena_distancia_a_indice_inicio(
 		hm_rr_bs_tabla *ht, uint64_t index_stored, uint64_t *distance) {
 	hm_cubeta cubeta = ht->buckets_[index_stored];
 	*distance = 0;
@@ -308,7 +308,7 @@ static inline int hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio
 	}
 	return 0;
 }
-hm_iter hash_map_robin_hood_back_shift_obten(hm_rr_bs_tabla *ht,
+hm_iter hmrh_obten(hm_rr_bs_tabla *ht,
 		const entero_largo key, entero_largo *value) {
 	uint64_t num_cubetas = ht->num_buckets_;
 	uint64_t prob_max = ht->probing_max_;
@@ -325,7 +325,7 @@ hm_iter hash_map_robin_hood_back_shift_obten(hm_rr_bs_tabla *ht,
 		if (entrada == NULL) {
 			break;
 		}
-		hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+		hmrh_llena_distancia_a_indice_inicio(ht,
 				index_current, &probe_distance);
 		if (i > probe_distance) {
 			break;
@@ -340,7 +340,7 @@ hm_iter hash_map_robin_hood_back_shift_obten(hm_rr_bs_tabla *ht,
 		return index_current;
 	return HASH_MAP_VALOR_INVALIDO;
 }
-hm_iter hash_map_robin_hood_back_shift_pon(hm_rr_bs_tabla *ht, entero_largo key,
+hm_iter hmrh_pon(hm_rr_bs_tabla *ht, entero_largo key,
 		entero_largo value, bool *nuevo_entry) {
 	uint64_t num_cubetas = ht->num_buckets_;
 	uint64_t prob_max = ht->probing_max_;
@@ -382,7 +382,7 @@ hm_iter hash_map_robin_hood_back_shift_pon(hm_rr_bs_tabla *ht, entero_largo key,
 				*nuevo_entry = falso;
 				break;
 			}
-			hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+			hmrh_llena_distancia_a_indice_inicio(ht,
 					index_current, &probe_distance);
 			if (probe_current > probe_distance) {
 				entry_temp = cubeta->entry;
@@ -398,7 +398,7 @@ hm_iter hash_map_robin_hood_back_shift_pon(hm_rr_bs_tabla *ht, entero_largo key,
 	}
 	return index_current;
 }
-int hash_map_robin_hood_back_shift_borra(hm_rr_bs_tabla *ht,
+int hmrh_borra(hm_rr_bs_tabla *ht,
 		const tipo_dato key) {
 	uint64_t num_cubetas = ht->num_buckets_;
 	uint64_t prob_max = ht->probing_max_;
@@ -412,7 +412,7 @@ int hash_map_robin_hood_back_shift_borra(hm_rr_bs_tabla *ht,
 	for (uint64_t i = 0; i < num_cubetas; i++) {
 		index_current = (index_init + i) % num_cubetas;
 		entrada = ht->buckets_[index_current].entry;
-		hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(ht,
+		hmrh_llena_distancia_a_indice_inicio(ht,
 				index_current, &probe_distance);
 		if (entrada == NULL || i > probe_distance) {
 			break;
@@ -436,7 +436,7 @@ int hash_map_robin_hood_back_shift_borra(hm_rr_bs_tabla *ht,
 				break;
 			}
 			uint64_t distance;
-			if (hash_map_robin_hood_back_shift_llena_distancia_a_indice_inicio(
+			if (hmrh_llena_distancia_a_indice_inicio(
 					ht, index_swap, &distance) != 0) {
 				fprintf(stderr, "Error in FillDistanceToInitIndex()");
 			}
@@ -485,42 +485,12 @@ int hash_map_robin_hood_back_shift_borra(hm_rr_bs_tabla *ht,
 	return 1;
 }
 
-static inline void hash_map_robin_hood_back_shift_indice_pon_valor(
-		hm_rr_bs_tabla *ht, hm_iter indice, entero_largo valor) {
-	assert_timeout(indice <= ht->probing_max_ && indice >= ht->probing_min_);
-	hm_entry *entrada = ht->buckets_[indice].entry;
-	assert_timeout(entrada);
-	entrada->valor = valor;
-}
-
-static inline void hash_map_robin_hood_back_shift_reemplazar(hm_rr_bs_tabla *ht,
-		entero_largo llave, entero_largo valor) {
-	hm_iter iter = 0;
-	entero_largo *valor_int = &(entero_largo ) { 0 };
-
-	iter = hash_map_robin_hood_back_shift_obten(ht, llave, valor_int);
-
-	assert_timeout(iter!=HASH_MAP_VALOR_INVALIDO);
-
-	hash_map_robin_hood_back_shift_indice_pon_valor(ht, iter, valor);
-}
-
-static inline void hash_map_robin_hood_back_shift_insertar_nuevo(
-		hm_rr_bs_tabla *ht, entero_largo llave, entero_largo valor) {
-	hm_iter iter = 0;
-	bool nuevo = falso;
-	iter = hash_map_robin_hood_back_shift_pon(ht, llave, valor, &nuevo);
-
-	assert_timeout(iter!=HASH_MAP_VALOR_INVALIDO);
-	assert_timeout(nuevo);
-}
-
 #endif
 
 #if 1
 
 #define HEAP_SHIT_MAX_NODOS (204|(204<<8))
-#define HEAP_SHIT_MAX_LLAVES HUARONVERGA_MAX_LLAVE
+#define HEAP_SHIT_MAX_LLAVES HV_MAX_LLAVE
 #define HEAP_SHIT_VALOR_INVALIDO CACA_COMUN_VALOR_INVALIDO
 
 typedef struct heap_shit_nodo {
@@ -549,7 +519,7 @@ static inline heap_shit *heap_shit_init(bool es_min) {
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
 	heap->tablon_llave_a_idx_heap = calloc(1, sizeof(hm_rr_bs_tabla));
 	assert_timeout(heap->tablon_llave_a_idx_heap);
-	hash_map_robin_hood_back_shift_init(heap->tablon_llave_a_idx_heap, HEAP_SHIT_MAX_NODOS);
+	hmrh_init(heap->tablon_llave_a_idx_heap, HEAP_SHIT_MAX_NODOS);
 #else
 	for (int i = 0; i < HEAP_SHIT_MAX_NODOS; i++) {
 		heap->mapa_llave_a_idx_heap[i] = HEAP_SHIT_VALOR_INVALIDO;
@@ -560,7 +530,7 @@ static inline heap_shit *heap_shit_init(bool es_min) {
 
 void heap_shit_fini(heap_shit *heap_ctx) {
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	hash_map_robin_hood_back_shift_fini(heap_ctx->tablon_llave_a_idx_heap);
+	hmrh_fini(heap_ctx->tablon_llave_a_idx_heap);
 	free(heap_ctx->tablon_llave_a_idx_heap);
 #endif
 	free(heap_ctx);
@@ -611,7 +581,7 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 
 		heap[now] = heap[idx_padre];
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre, now);
+		hmrh_reemplazar(mapeo_inv, llave_padre, now);
 #else
 		mapeo_inv[llave_padre] = now;
 #endif
@@ -620,7 +590,7 @@ static inline void heap_shit_insert(heap_shit *heap_ctx,
 
 	heap[now] = *nodo_nuevo;
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	hash_map_robin_hood_back_shift_insertar_nuevo(mapeo_inv, nodo_nuevo->llave,
+	hmrh_insertar_nuevo(mapeo_inv, nodo_nuevo->llave,
 			now);
 #else
 	mapeo_inv[nodo_nuevo->llave] = now;
@@ -678,7 +648,7 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 			heap[now] = heap[idx_padre];
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-			hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, llave_padre,
+			hmrh_reemplazar(mapeo_inv, llave_padre,
 					now);
 #else
 			mapeo_inv[llave_padre] = now;
@@ -705,7 +675,7 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 				heap[now] = heap[child];
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-				hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
+				hmrh_reemplazar(mapeo_inv,
 						heap[child].llave, now);
 #else
 				mapeo_inv[heap_shit_llave_en_idx_heap(heap, child)] = now;
@@ -717,14 +687,14 @@ static inline void *heap_shit_delete(heap_shit *heap_ctx, natural idx_a_borrar) 
 	}
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	hash_map_robin_hood_back_shift_borra(mapeo_inv, minElement.llave);
+	hmrh_borra(mapeo_inv, minElement.llave);
 #else
 	mapeo_inv[minElement.llave] = HEAP_SHIT_VALOR_INVALIDO;
 #endif
 	if (heap_size && idx_a_borrar != heap_size + 1) {
 		heap[now] = lastElement;
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv, lastElement.llave,
+		hmrh_reemplazar(mapeo_inv, lastElement.llave,
 				now);
 #else
 		mapeo_inv[lastElement.llave] = now;
@@ -747,7 +717,7 @@ static inline void *heap_shit_borrar_directo(heap_shit *heap_ctx,
 	assert_timeout(heap_size);
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	natural idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
+	natural idx_hm = hmrh_obten(indices_valores,
 			llave, &idx_a_borrar);
 	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
 #else
@@ -799,7 +769,7 @@ static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
 //		heap_shit_intercambia_nodos(ctx, idx_padre, now);
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-		hash_map_robin_hood_back_shift_reemplazar(mapeo_inv,
+		hmrh_reemplazar(mapeo_inv,
 				heap_shit_llave_en_idx_heap(heap, idx_padre), now);
 #else
 		mapeo_inv[heap_shit_llave_en_idx_heap(heap, idx_padre)] = now;
@@ -811,7 +781,7 @@ static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
 	}
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	hash_map_robin_hood_back_shift_indice_pon_valor(mapeo_inv, idx_en_ht, now);
+	hmrh_indice_pon_valor(mapeo_inv, idx_en_ht, now);
 #else
 	mapeo_inv[nodo_a_subir->llave] = now;
 #endif
@@ -834,7 +804,7 @@ static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
 	assert_timeout(heap_size);
 
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
-	hm_iter idx_hm = hash_map_robin_hood_back_shift_obten(indices_valores,
+	hm_iter idx_hm = hmrh_obten(indices_valores,
 			llave, &idx_a_subir);
 	assert_timeout(idx_hm!=HASH_MAP_VALOR_INVALIDO);
 #else
@@ -854,8 +824,8 @@ static inline void heap_shit_altera_prioridad(heap_shit *ctx, tipo_dato llave,
 
 #endif
 
-#define HUARONVERGA_VALOR_INVALIDO (CACA_COMUN_VALOR_INVALIDO-10)
-#define HUARONVERGA_INVIABLE (HUARONVERGA_VALOR_INVALIDO-101)
+#define HV_VALOR_INVALIDO (CACA_COMUN_VALOR_INVALIDO-10)
+#define HV_INVIABLE (HV_VALOR_INVALIDO-101)
 
 typedef enum huaronverga_caso_familiar {
 	vertical_huaronverga_caso_familiar = 0,
@@ -865,7 +835,7 @@ typedef enum huaronverga_caso_familiar {
 	esq_3_huaronverga_caso_familiar,
 	esq_4_huaronverga_caso_familiar,
 	final_huaronverga_caso_familiar,
-	invalido_huaronverga_caso_familiar = HUARONVERGA_VALOR_INVALIDO
+	invalido_huaronverga_caso_familiar = HV_VALOR_INVALIDO
 } huaronverga_caso_familiar;
 #define inicial_huaronverga_caso_familiar vertical_huaronverga_caso_familiar
 
@@ -875,51 +845,51 @@ typedef enum huaronverga_movimientos_decendiente_directo_idx {
 	abajo_huaronverga_movimientos_decendiente_directo_idx,
 	izquierda_huaronverga_movimientos_decendiente_directo_idx,
 	ultimo_huaronverga_movimientos_decendiente_directo_idx,
-	invalido_huaronverga_movimientos_decendiente_directo_idx = HUARONVERGA_VALOR_INVALIDO
+	invalido_huaronverga_movimientos_decendiente_directo_idx = HV_VALOR_INVALIDO
 } huaronverga_movimientos_decendiente_directo_idx;
 #define primero_huaronverga_movimientos_decendiente_directo_idx arriba_huaronverga_movimientos_decendiente_directo_idx
 
-#define HUARONVERGA_MAX_FILAS 200
-#define HUARONVERGA_MAX_COLUMNAS 200
-#define HUARONVERGA_MAX_ELEMENTOS (HUARONVERGA_MAX_FILAS*HUARONVERGA_MAX_COLUMNAS)
-#define HUARONVERGA_MAX_ELEMENTOS_RODEADOS ((HUARONVERGA_MAX_FILAS+4)*(HUARONVERGA_MAX_COLUMNAS+4))
-#define HUARONVERGA_CARACTER_BLOQUE_LIBRE '1'
-#define HUARONVERGA_CARACTER_BLOQUE_BLOKEADO '0'
+#define HV_MAX_FILAS 200
+#define HV_MAX_COLUMNAS 200
+#define HV_MAX_ELEMENTOS (HV_MAX_FILAS*HV_MAX_COLUMNAS)
+#define HV_MAX_ELEMENTOS_RODEADOS ((HV_MAX_FILAS+4)*(HV_MAX_COLUMNAS+4))
+#define HV_CARACTER_BLOQUE_LIBRE '1'
+#define HV_CARACTER_BLOQUE_BLOKEADO '0'
 
 typedef struct huaronverga_ctx {
-	byteme matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
-	byteme matrix_rodeada[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS
+	byteme matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS];
+	byteme matrix_rodeada[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS
 			+ 4];
-	tipo_dato matrix_chosto_brinco[final_huaronverga_caso_familiar][HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
-	tipo_dato matrix_chosto_minimo[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
-	puto_cardinal matrix_predecesores[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
+	tipo_dato matrix_chosto_brinco[final_huaronverga_caso_familiar][HV_MAX_FILAS][HV_MAX_COLUMNAS];
+	tipo_dato matrix_chosto_minimo[HV_MAX_FILAS][HV_MAX_COLUMNAS];
+	pcrd matrix_predecesores[HV_MAX_FILAS][HV_MAX_COLUMNAS];
 	tipo_dato chosto_brinco;
 	natural columnas_tam;
 	natural filas_tam;
 } huaronverga_ctx;
 
 typedef struct huaronverga_args {
-	puto_cardinal *abuelo;
-	puto_cardinal *padre;
-	puto_cardinal *hijo;
-	puto_cardinal *mas_arriba;
-	puto_cardinal *mas_abajo;
+	pcrd *abuelo;
+	pcrd *padre;
+	pcrd *hijo;
+	pcrd *mas_arriba;
+	pcrd *mas_abajo;
 	tipo_dato chosto_act_hijo;
 	huaronverga_caso_familiar cacaso;
 } huaronverga_args;
 
-puto_cardinal movimientos_decendiente_directo[] = { { 0, 1 }, { 1, 0 },
+pcrd movimientos_decendiente_directo[] = { { 0, 1 }, { 1, 0 },
 		{ 0, -1 }, { -1, 0 } };
 
-puto_cardinal movimientos_posible_abuelo[][2] = {
+pcrd movimientos_posible_abuelo[][2] = {
 		[vertical_huaronverga_caso_familiar]= { { 1, 0 }, { -1, 0 } },
 		[horizontal_huaronverga_caso_familiar ]= { { 0, 1 }, { 0, -1 } },
 		[esq_1_huaronverga_caso_familiar ... final_huaronverga_caso_familiar
 				]= { {
-				HUARONVERGA_VALOR_INVALIDO,
-				HUARONVERGA_VALOR_INVALIDO }, {
-				HUARONVERGA_VALOR_INVALIDO,
-				HUARONVERGA_VALOR_INVALIDO } } };
+				HV_VALOR_INVALIDO,
+				HV_VALOR_INVALIDO }, {
+				HV_VALOR_INVALIDO,
+				HV_VALOR_INVALIDO } } };
 natural movimientos_posible_abuelo_tam[] = { [vertical_huaronverga_caso_familiar
 		]= 2, [horizontal_huaronverga_caso_familiar ]=2,
 		[esq_1_huaronverga_caso_familiar ... final_huaronverga_caso_familiar
@@ -946,10 +916,10 @@ huaronverga_caso_familiar cacasos_abuelo_hijo[][ultimo_huaronverga_movimientos_d
 						invalido_huaronverga_caso_familiar } // abuelo: IZQUIERDA
 		};
 
-static inline tipo_dato huaronverga_compacta_coordenada(puto_cardinal *nodo) {
+static inline tipo_dato huaronverga_cc(pcrd *nodo) {
 	tipo_dato coord_xy_compacta = 0;
 
-	coord_xy_compacta = puto_cardinal_compacta_a_corto(nodo)
+	coord_xy_compacta = pcrd_compacta_a_corto(nodo)
 			& ((tipo_dato) 0xffff);
 
 	assert_timeout(coord_xy_compacta<=HEAP_SHIT_MAX_LLAVES);
@@ -957,23 +927,23 @@ static inline tipo_dato huaronverga_compacta_coordenada(puto_cardinal *nodo) {
 	return coord_xy_compacta;
 }
 
-static inline tipo_dato huaronverga_compacta_coordenada_rodeada(
-		puto_cardinal *nodo) {
+static inline tipo_dato huaronverga_cc_rodeada(
+		pcrd *nodo) {
 	tipo_dato coord_xy_compacta = 0;
 
-	coord_xy_compacta = puto_cardinal_compacta_a_corto(nodo)
+	coord_xy_compacta = pcrd_compacta_a_corto(nodo)
 			& ((tipo_dato) 0xffff);
 
-	assert_timeout(coord_xy_compacta <= HUARONVERGA_MAX_LLAVE_RODEADA);
+	assert_timeout(coord_xy_compacta <= HV_MAX_LLAVE_RODEADA);
 
 	return coord_xy_compacta;
 }
 
 static inline huaronverga_caso_familiar huaronverga_obten_caso_familiar(
 		huaronverga_args *hvargs) {
-	puto_cardinal *abuelo = hvargs->abuelo;
-	puto_cardinal *padre = hvargs->padre;
-	puto_cardinal *hijo = hvargs->hijo;
+	pcrd *abuelo = hvargs->abuelo;
+	pcrd *padre = hvargs->padre;
+	pcrd *hijo = hvargs->hijo;
 	huaronverga_caso_familiar cacaso = invalido_huaronverga_caso_familiar;
 	huaronverga_movimientos_decendiente_directo_idx caso_abuelo_idx =
 			invalido_huaronverga_movimientos_decendiente_directo_idx;
@@ -986,10 +956,10 @@ static inline huaronverga_caso_familiar huaronverga_obten_caso_familiar(
 					< ultimo_huaronverga_movimientos_decendiente_directo_idx;
 			caso_abuelo_idx++) {
 
-		puto_cardinal *movimiento_act = movimientos_decendiente_directo
+		pcrd *movimiento_act = movimientos_decendiente_directo
 				+ caso_abuelo_idx;
 
-		puto_cardinal *potencial_abuelo = &(puto_cardinal )
+		pcrd *potencial_abuelo = &(pcrd )
 				{ .coord_x = padre->coord_x + movimiento_act->coord_x,
 						.coord_y =
 						padre->coord_y + movimiento_act->coord_y };
@@ -1008,10 +978,10 @@ static inline huaronverga_caso_familiar huaronverga_obten_caso_familiar(
 					< ultimo_huaronverga_movimientos_decendiente_directo_idx;
 			caso_hijo_idx++) {
 
-		puto_cardinal *movimiento_act = movimientos_decendiente_directo
+		pcrd *movimiento_act = movimientos_decendiente_directo
 				+ caso_hijo_idx;
 
-		puto_cardinal *potencial_hijo = &(puto_cardinal )
+		pcrd *potencial_hijo = &(pcrd )
 				{ .coord_x = padre->coord_x + movimiento_act->coord_x,
 						.coord_y =
 						padre->coord_y + movimiento_act->coord_y };
@@ -1033,24 +1003,24 @@ static inline huaronverga_caso_familiar huaronverga_obten_caso_familiar(
 	return cacaso;
 }
 
-static inline void huaronverga_genera_vecino_en_idx(puto_cardinal *origen,
-		puto_cardinal *vecino,
+static inline void huaronverga_genera_vecino_en_idx(pcrd *origen,
+		pcrd *vecino,
 		huaronverga_movimientos_decendiente_directo_idx idx) {
-	puto_cardinal *mov_act = movimientos_decendiente_directo + idx;
+	pcrd *mov_act = movimientos_decendiente_directo + idx;
 	vecino->coord_x = origen->coord_x + mov_act->coord_x;
 	vecino->coord_y = origen->coord_y + mov_act->coord_y;
 }
 
 #define huaronverga_obten_valor_en_coord(matrix,puto) (matrix)[puto->coord_x][puto->coord_y]
 
-#define huaronverga_genera_puto_rodeado_local(nodo) (&(puto_cardinal ){.coord_x=(nodo)->coord_x+2,.coord_y=(nodo)->coord_y+2})
-#define huaronverga_genera_puto_desrodeado_local(nodo) (&(puto_cardinal ){.coord_x=(nodo)->coord_x-2,.coord_y=(nodo)->coord_y-2})
+#define huaronverga_genera_puto_rodeado_local(nodo) (&(pcrd ){.coord_x=(nodo)->coord_x+2,.coord_y=(nodo)->coord_y+2})
+#define huaronverga_genera_puto_desrodeado_local(nodo) (&(pcrd ){.coord_x=(nodo)->coord_x-2,.coord_y=(nodo)->coord_y-2})
 
-static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
-		puto_cardinal *puto) {
+static inline bool huaronverga_va_pcrd(huaronverga_ctx *ctx,
+		pcrd *puto) {
 	bool valido = verdadero;
-	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO || puto->coord_x < 0
+	if (puto->coord_x == HV_VALOR_INVALIDO
+			|| puto->coord_y == HV_VALOR_INVALIDO || puto->coord_x < 0
 			|| puto->coord_y < 0 || puto->coord_x >= ctx->filas_tam
 			|| puto->coord_y >= ctx->columnas_tam) {
 		valido = falso;
@@ -1058,11 +1028,11 @@ static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
 	return valido;
 }
 
-static inline bool huaronverga_valida_puto_cardinal_rodeado(
-		huaronverga_ctx *ctx, puto_cardinal *puto) {
+static inline bool huaronverga_va_pcrd_rodeado(
+		huaronverga_ctx *ctx, pcrd *puto) {
 	bool valido = verdadero;
-	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO
-			|| puto->coord_y == HUARONVERGA_VALOR_INVALIDO || puto->coord_x < 0
+	if (puto->coord_x == HV_VALOR_INVALIDO
+			|| puto->coord_y == HV_VALOR_INVALIDO || puto->coord_x < 0
 			|| puto->coord_y < 0 || puto->coord_x >= ctx->filas_tam + 4
 			|| puto->coord_y >= ctx->columnas_tam + 4) {
 		valido = falso;
@@ -1070,22 +1040,22 @@ static inline bool huaronverga_valida_puto_cardinal_rodeado(
 	return valido;
 }
 
-static inline bool huaronverga_valida_puto_cardinal_valor_matrix(
-		huaronverga_ctx *ctx, puto_cardinal *puto) {
+static inline bool huaronverga_va_pcrd_valor_matrix(
+		huaronverga_ctx *ctx, pcrd *puto) {
 	bool valido = verdadero;
-	if (!huaronverga_valida_puto_cardinal(ctx, puto) ||
-	huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+	if (!huaronverga_va_pcrd(ctx, puto) ||
+	huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HV_CARACTER_BLOQUE_LIBRE
 	) {
 		valido = falso;
 	}
 	return valido;
 }
 
-static inline bool huaronverga_valida_puto_cardinal_valor_matrix_rodeada(
-		huaronverga_ctx *ctx, puto_cardinal *puto) {
+static inline bool huaronverga_va_pcrd_valor_matrix_rodeada(
+		huaronverga_ctx *ctx, pcrd *puto) {
 	bool valido = verdadero;
-	if (!huaronverga_valida_puto_cardinal_rodeado(ctx, puto) ||
-	huaronverga_obten_valor_en_coord(ctx->matrix_rodeada,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
+	if (!huaronverga_va_pcrd_rodeado(ctx, puto) ||
+	huaronverga_obten_valor_en_coord(ctx->matrix_rodeada,puto)!=HV_CARACTER_BLOQUE_LIBRE
 	) {
 		valido = falso;
 	}
@@ -1093,19 +1063,19 @@ static inline bool huaronverga_valida_puto_cardinal_valor_matrix_rodeada(
 }
 
 static inline natural huaronverga_genera_vecinos_validos(huaronverga_ctx *ctx,
-		puto_cardinal *caca, puto_cardinal *vecinos, bool solo_validos) {
+		pcrd *caca, pcrd *vecinos, bool solo_validos) {
 	natural vecinos_cnt = 0;
 
 	for (huaronverga_movimientos_decendiente_directo_idx i =
 	primero_huaronverga_movimientos_decendiente_directo_idx;
 			i < ultimo_huaronverga_movimientos_decendiente_directo_idx; i++) {
-		puto_cardinal *vecino_act = vecinos + vecinos_cnt;
-		puto_cardinal *vecino_act_rodeado = NULL;
+		pcrd *vecino_act = vecinos + vecinos_cnt;
+		pcrd *vecino_act_rodeado = NULL;
 
 		huaronverga_genera_vecino_en_idx(caca, vecino_act, i);
 		vecino_act_rodeado = huaronverga_genera_puto_rodeado_local(vecino_act);
 
-		if (huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+		if (huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 				vecino_act_rodeado) || !solo_validos) {
 			vecinos_cnt++;
 		}
@@ -1114,38 +1084,38 @@ static inline natural huaronverga_genera_vecinos_validos(huaronverga_ctx *ctx,
 }
 
 static inline void huaronverga_pon_valor_en_coord_stack_byteme(
-		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
-		puto_cardinal *puto, byteme valor) {
+		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		pcrd *puto, byteme valor) {
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
 
-static inline void huaronverga_pon_valor_en_coord_stack_puto_cardinal(
-		puto_cardinal matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS],
-		puto_cardinal *puto, puto_cardinal *valor) {
+static inline void huaronverga_pon_valor_en_coord_stack_pcrd(
+		pcrd matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS],
+		pcrd *puto, pcrd *valor) {
 	matrix[puto->coord_x][puto->coord_y] = *valor;
 }
 
 static inline void huaronverga_pon_valor_en_coord_stack_natural(
-		natural matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS],
-		puto_cardinal *puto, natural valor) {
+		natural matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS],
+		pcrd *puto, natural valor) {
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
 
 typedef struct huaronverga_chosto_bfs_elem {
-	puto_cardinal puto;
+	pcrd puto;
 	natural chosto;
 } huaronverga_chosto_bfs_elem;
 
-huaronverga_chosto_bfs_elem chostos_queue_elems[HUARONVERGA_MAX_ELEMENTOS_RODEADOS
-		+ 1] = { HUARONVERGA_VALOR_INVALIDO };
+huaronverga_chosto_bfs_elem chostos_queue_elems[HV_MAX_ELEMENTOS_RODEADOS
+		+ 1] = { HV_VALOR_INVALIDO };
 
-natural chostos_bfs[HUARONVERGA_MAX_LLAVE_RODEADA + 1] = {
-HUARONVERGA_VALOR_INVALIDO };
+natural chostos_bfs[HV_MAX_LLAVE_RODEADA + 1] = {
+HV_VALOR_INVALIDO };
 
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 		huaronverga_ctx *ctx,
-		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
-		puto_cardinal *inicio, puto_cardinal *fin,
+		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		pcrd *inicio, pcrd *fin,
 		huaronverga_chosto_bfs_elem *chostos_queue_elems, natural *chostos,
 		bitch_vector_ctx *bitch_map) {
 	tipo_dato chosto = 0;
@@ -1153,25 +1123,25 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 	bool se_encontro_fin = falso;
 	natural putos_tmp_cnt = 0;
 	bitch_vector_ctx *bvctx = NULL;
-	puto_cardinal *inicio_rodeado = huaronverga_genera_puto_rodeado_local(
+	pcrd *inicio_rodeado = huaronverga_genera_puto_rodeado_local(
 			inicio);
-	puto_cardinal *fin_rodeado = huaronverga_genera_puto_rodeado_local(fin);
+	pcrd *fin_rodeado = huaronverga_genera_puto_rodeado_local(fin);
 	bool todos_encontrados = falso;
 
 	if (inicio->coord_xy == fin->coord_xy) {
 		return 0;
 	}
 
-	if (!huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+	if (!huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 			inicio_rodeado)
-			|| !huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+			|| !huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 					fin_rodeado)) {
-		return HUARONVERGA_VALOR_INVALIDO;
+		return HV_VALOR_INVALIDO;
 	}
 
-	bvctx = bitch_init(HUARONVERGA_MAX_LLAVE_RODEADA);
+	bvctx = bitch_init(HV_MAX_LLAVE_RODEADA);
 
-	kha = queue_construye(HUARONVERGA_MAX_FILAS * HUARONVERGA_MAX_COLUMNAS);
+	kha = queue_construye(HV_MAX_FILAS * HV_MAX_COLUMNAS);
 
 	huaronverga_chosto_bfs_elem *elem_inicial = chostos_queue_elems
 			+ putos_tmp_cnt++;
@@ -1179,13 +1149,13 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 	elem_inicial->chosto = 0;
 	queue_encula(kha, elem_inicial);
 
-	chostos[huaronverga_compacta_coordenada_rodeada(inicio_rodeado)] = 0;
-	chostos[huaronverga_compacta_coordenada_rodeada(fin_rodeado)] =
-	HUARONVERGA_VALOR_INVALIDO;
+	chostos[huaronverga_cc_rodeada(inicio_rodeado)] = 0;
+	chostos[huaronverga_cc_rodeada(fin_rodeado)] =
+	HV_VALOR_INVALIDO;
 
 	while (!queue_vacia(kha)) {
 		huaronverga_chosto_bfs_elem *act_elem = queue_decula(kha);
-		puto_cardinal *act = &act_elem->puto;
+		pcrd *act = &act_elem->puto;
 		if (act_elem->chosto >= ctx->chosto_brinco) {
 			break;
 		}
@@ -1196,14 +1166,14 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 				vecino_idx++) {
 			huaronverga_chosto_bfs_elem *vecino_elem = chostos_queue_elems
 					+ putos_tmp_cnt;
-			puto_cardinal *vecino = &vecino_elem->puto;
+			pcrd *vecino = &vecino_elem->puto;
 			tipo_dato vecino_compacto = 0;
 
 			huaronverga_genera_vecino_en_idx(act, vecino, vecino_idx);
 
-			vecino_compacto = huaronverga_compacta_coordenada_rodeada(vecino);
+			vecino_compacto = huaronverga_cc_rodeada(vecino);
 
-			if (huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+			if (huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 					vecino) && !bitch_checa(bvctx, vecino_compacto)) {
 
 				putos_tmp_cnt++;
@@ -1229,7 +1199,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 	}
 
 	if (se_encontro_fin) {
-		chosto = chostos[huaronverga_compacta_coordenada_rodeada(fin_rodeado)];
+		chosto = chostos[huaronverga_cc_rodeada(fin_rodeado)];
 	} else {
 		chosto = ctx->chosto_brinco;
 	}
@@ -1246,21 +1216,21 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud_brincando(
 		huaronverga_ctx *ctx,
-		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
-		puto_cardinal *inicio, puto_cardinal *invalido, puto_cardinal *fin,
+		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		pcrd *inicio, pcrd *invalido, pcrd *fin,
 		huaronverga_chosto_bfs_elem *chostos_queue_elems, natural *chostos,
 		bitch_vector_ctx *bitch_map) {
 
 	tipo_dato chosto = 0;
 	byteme valor_ant = 0;
-	puto_cardinal *invalido_rodeado = huaronverga_genera_puto_rodeado_local(
+	pcrd *invalido_rodeado = huaronverga_genera_puto_rodeado_local(
 			invalido);
-	puto_cardinal *inicio_rodeado = huaronverga_genera_puto_rodeado_local(
+	pcrd *inicio_rodeado = huaronverga_genera_puto_rodeado_local(
 			inicio);
 
 	valor_ant = huaronverga_obten_valor_en_coord(matrix, invalido_rodeado);
 	huaronverga_pon_valor_en_coord_stack_byteme(matrix, invalido_rodeado,
-	HUARONVERGA_CARACTER_BLOQUE_BLOKEADO);
+	HV_CARACTER_BLOQUE_BLOKEADO);
 
 	chosto = huaronverga_chosto_por_busqueda_en_amplitud(ctx, matrix, inicio,
 			fin, chostos_queue_elems, chostos, bitch_map);
@@ -1274,19 +1244,19 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud_brincando(
 static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 		huaronverga_args *hvargs) {
 	tipo_dato res = 0;
-	puto_cardinal *abuelo = hvargs->abuelo;
-	puto_cardinal *padre = hvargs->padre;
-	puto_cardinal *hijo = hvargs->hijo;
-	puto_cardinal *mas_abajo = &(puto_cardinal ) { 0 };
-	puto_cardinal *mas_arriba = &(puto_cardinal ) { 0 };
-	puto_cardinal vecinos[4] = { 0 };
+	pcrd *abuelo = hvargs->abuelo;
+	pcrd *padre = hvargs->padre;
+	pcrd *hijo = hvargs->hijo;
+	pcrd *mas_abajo = &(pcrd ) { 0 };
+	pcrd *mas_arriba = &(pcrd ) { 0 };
+	pcrd vecinos[4] = { 0 };
 	natural vecinos_cnt = 0;
-	puto_cardinal *padre_rodeado = huaronverga_genera_puto_rodeado_local(padre);
-	puto_cardinal *mas_abajo_rodeado = NULL;
-	tipo_dato (*matrix_chosto_brinco)[final_huaronverga_caso_familiar][HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
+	pcrd *padre_rodeado = huaronverga_genera_puto_rodeado_local(padre);
+	pcrd *mas_abajo_rodeado = NULL;
+	tipo_dato (*matrix_chosto_brinco)[final_huaronverga_caso_familiar][HV_MAX_FILAS][HV_MAX_COLUMNAS] =
 			&ctx->matrix_chosto_brinco;
 	huaronverga_caso_familiar cacaso = hvargs->cacaso;
-	bitch_vector_ctx *bitch_map = bitch_init(HUARONVERGA_MAX_LLAVE_RODEADA);
+	bitch_vector_ctx *bitch_map = bitch_init(HV_MAX_LLAVE_RODEADA);
 
 	assert_timeout(abuelo->coord_xy!=padre->coord_xy);
 	assert_timeout(padre->coord_xy!=hijo->coord_xy);
@@ -1302,17 +1272,17 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 
 	int i = 0;
 	for (i = 0; i < vecinos_cnt; i++) {
-		puto_cardinal *vecino_act = vecinos + i;
-		tipo_dato chosto_act = HUARONVERGA_VALOR_INVALIDO;
+		pcrd *vecino_act = vecinos + i;
+		tipo_dato chosto_act = HV_VALOR_INVALIDO;
 		tipo_dato coord_compacta = 0;
 
-		coord_compacta = huaronverga_compacta_coordenada_rodeada(vecino_act);
+		coord_compacta = huaronverga_cc_rodeada(vecino_act);
 
-		if (huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+		if (huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 				vecino_act) && vecino_act->coord_xy == padre_rodeado->coord_xy) {
 			chosto_act = 0;
 		} else {
-			chosto_act = HUARONVERGA_VALOR_INVALIDO;
+			chosto_act = HV_VALOR_INVALIDO;
 		}
 		chostos_bfs[coord_compacta] = chosto_act;
 		bitch_asigna(bitch_map, coord_compacta);
@@ -1328,16 +1298,16 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 	primero_huaronverga_movimientos_decendiente_directo_idx, vecinos_cnt = 0;
 			i < ultimo_huaronverga_movimientos_decendiente_directo_idx;
 			i++, vecinos_cnt++) {
-		puto_cardinal *vecino_act = vecinos + vecinos_cnt;
-		if (huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
+		pcrd *vecino_act = vecinos + vecinos_cnt;
+		if (huaronverga_va_pcrd_valor_matrix_rodeada(ctx,
 				vecino_act)) {
-			puto_cardinal *mas_abajo_act = NULL;
+			pcrd *mas_abajo_act = NULL;
 			tipo_dato chosto_act = 0;
 
 			huaronverga_caso_familiar cacaso_act =
 					invalido_huaronverga_caso_familiar;
 
-			chosto_act = chostos_bfs[huaronverga_compacta_coordenada_rodeada(
+			chosto_act = chostos_bfs[huaronverga_cc_rodeada(
 					vecino_act)];
 
 			switch (cacaso) {
@@ -1421,7 +1391,7 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 			}
 
 			if (cacaso_act != invalido_huaronverga_caso_familiar) {
-				if (chosto_act == HUARONVERGA_VALOR_INVALIDO
+				if (chosto_act == HV_VALOR_INVALIDO
 						|| chosto_act > ctx->chosto_brinco) {
 					chosto_act = ctx->chosto_brinco;
 				}
@@ -1437,11 +1407,11 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 		huaronverga_args *hvargs) {
 	huaronverga_caso_familiar cacaso = invalido_huaronverga_caso_familiar;
-	puto_cardinal *abuelo = hvargs->abuelo;
-	puto_cardinal *padre = hvargs->padre;
-	puto_cardinal *hijo = hvargs->hijo;
-	puto_cardinal *mas_abajo = NULL;
-	puto_cardinal *mas_arriba = NULL;
+	pcrd *abuelo = hvargs->abuelo;
+	pcrd *padre = hvargs->padre;
+	pcrd *hijo = hvargs->hijo;
+	pcrd *mas_abajo = NULL;
+	pcrd *mas_arriba = NULL;
 	tipo_dato res = 0;
 
 	assert_timeout(abuelo->coord_xy!=padre->coord_xy);
@@ -1459,7 +1429,7 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 	res =
 			ctx->matrix_chosto_brinco[cacaso][mas_abajo->coord_x][mas_abajo->coord_y];
 
-	if (res == HUARONVERGA_VALOR_INVALIDO) {
+	if (res == HV_VALOR_INVALIDO) {
 		res = huaronverga_calcula_chosto_brinco(ctx, hvargs);
 		ctx->matrix_chosto_brinco[cacaso][mas_abajo->coord_x][mas_abajo->coord_y] =
 				res;
@@ -1472,24 +1442,24 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		huaronverga_args *hvargs) {
 	tipo_dato chosto = hvargs->chosto_act_hijo;
 	huaronverga_caso_familiar cacaso = hvargs->cacaso;
-	puto_cardinal *abuelo = hvargs->abuelo;
-	puto_cardinal *padre = hvargs->padre;
-	puto_cardinal *hijo = hvargs->hijo;
+	pcrd *abuelo = hvargs->abuelo;
+	pcrd *padre = hvargs->padre;
+	pcrd *hijo = hvargs->hijo;
 
 	for (int i = 0; i < movimientos_posible_abuelo_tam[cacaso]; i++) {
 		tipo_dato chosto_posible_bisabuelo_padre = 0;
 		tipo_dato chosto_posible_abuelo_hijo = 0;
 		tipo_dato chosto_posible_abuelo = 0;
 		tipo_dato chosto_hijo = 0;
-		puto_cardinal *mov_act = &movimientos_posible_abuelo[cacaso][i];
-		puto_cardinal *posible_abuelo = &(puto_cardinal ) { .coord_x =
+		pcrd *mov_act = &movimientos_posible_abuelo[cacaso][i];
+		pcrd *posible_abuelo = &(pcrd ) { .coord_x =
 				padre->coord_x + mov_act->coord_x, .coord_y =
 				padre->coord_y + mov_act->coord_y };
 
-		assert_timeout(posible_abuelo->coord_x!=HUARONVERGA_VALOR_INVALIDO);
-		assert_timeout(posible_abuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
+		assert_timeout(posible_abuelo->coord_x!=HV_VALOR_INVALIDO);
+		assert_timeout(posible_abuelo->coord_y!=HV_VALOR_INVALIDO);
 
-		if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx,
+		if (!huaronverga_va_pcrd_valor_matrix(ctx,
 				posible_abuelo)) {
 			continue;
 		}
@@ -1497,24 +1467,24 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		chosto_posible_abuelo = huaronverga_obten_valor_en_coord(
 				ctx->matrix_chosto_minimo, posible_abuelo);
 
-		if (chosto_posible_abuelo == HUARONVERGA_VALOR_INVALIDO) {
+		if (chosto_posible_abuelo == HV_VALOR_INVALIDO) {
 			continue;
 		}
 
-		puto_cardinal *posible_bisabuelo = &huaronverga_obten_valor_en_coord(
+		pcrd *posible_bisabuelo = &huaronverga_obten_valor_en_coord(
 				ctx->matrix_predecesores, posible_abuelo);
 
-		if (huaronverga_valida_puto_cardinal_valor_matrix(ctx,
+		if (huaronverga_va_pcrd_valor_matrix(ctx,
 				posible_bisabuelo) && posible_bisabuelo->coord_xy != padre->coord_xy) {
 			assert_timeout(
-					posible_bisabuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
+					posible_bisabuelo->coord_y!=HV_VALOR_INVALIDO);
 
 			chosto_posible_bisabuelo_padre = huaronverga_obten_chosto_brinco(
 					ctx, &(huaronverga_args ) { .cacaso = cacaso, .abuelo =
 									posible_bisabuelo, .padre = posible_abuelo,
 									.hijo = padre });
 			assert_timeout(
-					chosto_posible_bisabuelo_padre!=HUARONVERGA_VALOR_INVALIDO);
+					chosto_posible_bisabuelo_padre!=HV_VALOR_INVALIDO);
 
 			chosto_posible_bisabuelo_padre++;
 		}
@@ -1523,7 +1493,7 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 				&(huaronverga_args ) { .cacaso = cacaso, .abuelo =
 								posible_abuelo, .padre = padre, .hijo = hijo });
 
-		assert_timeout(chosto_posible_abuelo_hijo!=HUARONVERGA_VALOR_INVALIDO);
+		assert_timeout(chosto_posible_abuelo_hijo!=HV_VALOR_INVALIDO);
 		chosto_posible_abuelo_hijo++;
 
 		chosto_hijo = chosto_posible_abuelo + chosto_posible_bisabuelo_padre
@@ -1538,18 +1508,18 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 }
 
 static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
-		puto_cardinal *cacao, puto_cardinal *vacio, puto_cardinal *salida) {
-	puto_cardinal (*matrix_predecesores)[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
+		pcrd *cacao, pcrd *vacio, pcrd *salida) {
+	pcrd (*matrix_predecesores)[HV_MAX_FILAS][HV_MAX_COLUMNAS] =
 			&ctx->matrix_predecesores;
-	tipo_dato (*matrix_chosto_minimo)[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
+	tipo_dato (*matrix_chosto_minimo)[HV_MAX_FILAS][HV_MAX_COLUMNAS] =
 			&ctx->matrix_chosto_minimo;
-	puto_cardinal vecinos_tmp[ultimo_huaronverga_movimientos_decendiente_directo_idx] =
+	pcrd vecinos_tmp[ultimo_huaronverga_movimientos_decendiente_directo_idx] =
 			{ 0 };
 	natural vecinos_tmp_cnt = 0;
 	bool encontrada_salida = falso;
-	tipo_dato chosto_final = HUARONVERGA_VALOR_INVALIDO;
+	tipo_dato chosto_final = HV_VALOR_INVALIDO;
 
-	puto_cardinal *putos_tmp = NULL;
+	pcrd *putos_tmp = NULL;
 	natural putos_tmp_cnt = 0;
 
 	heap_shit *cola_prioridad = NULL;
@@ -1560,34 +1530,34 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		return 0;
 	}
 
-	if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx, cacao)
-			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, vacio)
-			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, salida)) {
-		return HUARONVERGA_VALOR_INVALIDO;
+	if (!huaronverga_va_pcrd_valor_matrix(ctx, cacao)
+			|| !huaronverga_va_pcrd_valor_matrix(ctx, vacio)
+			|| !huaronverga_va_pcrd_valor_matrix(ctx, salida)) {
+		return HV_VALOR_INVALIDO;
 	}
 
-	putos_tmp = calloc(HUARONVERGA_MAX_ELEMENTOS << 1, sizeof(putos_tmp));
+	putos_tmp = calloc(HV_MAX_ELEMENTOS << 1, sizeof(putos_tmp));
 	assert_timeout(putos_tmp);
 
-	bvctx = bitch_init(HUARONVERGA_MAX_LLAVE);
+	bvctx = bitch_init(HV_MAX_LLAVE);
 
 	cola_prioridad = heap_shit_init(verdadero);
 
 	for (int i = 0; i < ctx->filas_tam; i++) {
 		for (int j = 0; j < ctx->columnas_tam; j++) {
-			puto_cardinal *puto_act = putos_tmp + putos_tmp_cnt++;
+			pcrd *puto_act = putos_tmp + putos_tmp_cnt++;
 			puto_act->coord_y = j;
 			puto_act->coord_x = i;
-			if (huaronverga_obten_valor_en_coord(ctx->matrix,puto_act)==HUARONVERGA_CARACTER_BLOQUE_LIBRE && huaronverga_compacta_coordenada(puto_act)!=huaronverga_compacta_coordenada(cacao)) {
+			if (huaronverga_obten_valor_en_coord(ctx->matrix,puto_act)==HV_CARACTER_BLOQUE_LIBRE && huaronverga_cc(puto_act)!=huaronverga_cc(cacao)) {
 				heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {.prioridad =
-					HUARONVERGA_VALOR_INVALIDO, .llave =
-					huaronverga_compacta_coordenada(puto_act), .valor =
+					HV_VALOR_INVALIDO, .llave =
+					huaronverga_cc(puto_act), .valor =
 					puto_act});
 			}
 		}
 	}
 
-	bitch_asigna(bvctx, huaronverga_compacta_coordenada(cacao));
+	bitch_asigna(bvctx, huaronverga_cc(cacao));
 	huaronverga_pon_valor_en_coord_stack_natural(*matrix_chosto_minimo, cacao,
 			0);
 
@@ -1596,7 +1566,7 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 
 	for (int i = 0; i < vecinos_tmp_cnt; i++) {
 		natural chosto_vacio_primer_mov = 0;
-		puto_cardinal *vecino_act = vecinos_tmp + i;
+		pcrd *vecino_act = vecinos_tmp + i;
 
 		if (cacao->coord_xy != vacio->coord_xy) {
 			chosto_vacio_primer_mov =
@@ -1608,20 +1578,20 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		}
 
 		vecino_act = heap_shit_borrar_directo(cola_prioridad,
-				huaronverga_compacta_coordenada(vecino_act));
+				huaronverga_cc(vecino_act));
 
 		heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) { .prioridad =
 						chosto_vacio_primer_mov, .llave =
-						huaronverga_compacta_coordenada(vecino_act), .valor =
+						huaronverga_cc(vecino_act), .valor =
 						vecino_act });
-		huaronverga_pon_valor_en_coord_stack_puto_cardinal(*matrix_predecesores,
+		huaronverga_pon_valor_en_coord_stack_pcrd(*matrix_predecesores,
 				vecino_act, cacao);
 		huaronverga_pon_valor_en_coord_stack_natural(*matrix_chosto_minimo,
 				vecino_act, chosto_vacio_primer_mov);
 	}
 
 	while (cola_prioridad->heap_size) {
-		puto_cardinal *padre = heap_shit_borra_torpe(cola_prioridad);
+		pcrd *padre = heap_shit_borra_torpe(cola_prioridad);
 		assert_timeout(padre);
 		tipo_dato chosto_padre = huaronverga_obten_valor_en_coord(
 				*matrix_chosto_minimo, padre);
@@ -1630,13 +1600,13 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			encontrada_salida = verdadero;
 			break;
 		}
-		if (chosto_padre == HUARONVERGA_VALOR_INVALIDO) {
+		if (chosto_padre == HV_VALOR_INVALIDO) {
 			break;
 		}
 
-		bitch_asigna(bvctx, huaronverga_compacta_coordenada(padre));
+		bitch_asigna(bvctx, huaronverga_cc(padre));
 
-		puto_cardinal *abuelo = &huaronverga_obten_valor_en_coord(
+		pcrd *abuelo = &huaronverga_obten_valor_en_coord(
 				*matrix_predecesores, padre);
 		assert_timeout(abuelo);
 		vecinos_tmp_cnt = huaronverga_genera_vecinos_validos(ctx, padre,
@@ -1644,10 +1614,10 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 
 		for (int i = 0; i < vecinos_tmp_cnt; i++) {
 			tipo_dato chosto_act = 0;
-			puto_cardinal *hijo = &(puto_cardinal ) { 0 };
+			pcrd *hijo = &(pcrd ) { 0 };
 			*hijo = vecinos_tmp[i];
 
-			if (bitch_checa(bvctx, huaronverga_compacta_coordenada(hijo))) {
+			if (bitch_checa(bvctx, huaronverga_cc(hijo))) {
 				continue;
 			}
 
@@ -1665,21 +1635,21 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 					hijo);
 
 			if (chosto_hijo < chosto_act) {
-				huaronverga_pon_valor_en_coord_stack_puto_cardinal(
+				huaronverga_pon_valor_en_coord_stack_pcrd(
 						*matrix_predecesores, hijo, padre);
 				huaronverga_pon_valor_en_coord_stack_natural(
 						*matrix_chosto_minimo, hijo, chosto_hijo);
 				/*
 				 hijo = heap_shit_borrar_directo(cola_prioridad,
-				 huaronverga_compacta_coordenada(hijo));
+				 huaronverga_cc(hijo));
 				 heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {
 				 .prioridad = chosto_hijo, .llave =
-				 huaronverga_compacta_coordenada(hijo),
+				 huaronverga_cc(hijo),
 				 .valor = hijo });
 				 */
 
 				heap_shit_altera_prioridad(cola_prioridad,
-						huaronverga_compacta_coordenada(hijo), chosto_hijo);
+						huaronverga_cc(hijo), chosto_hijo);
 			}
 		}
 	}
@@ -1697,13 +1667,13 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 }
 
 static inline entero_largo_sin_signo huaronverga_compacta_caso(
-		puto_cardinal *cacao, puto_cardinal *salida, puto_cardinal *vacio) {
+		pcrd *cacao, pcrd *salida, pcrd *vacio) {
 	entero_largo_sin_signo caso_compacto = 0;
 
-	caso_compacto = huaronverga_compacta_coordenada(cacao);
-	caso_compacto |= ((entero_largo_sin_signo) huaronverga_compacta_coordenada(
+	caso_compacto = huaronverga_cc(cacao);
+	caso_compacto |= ((entero_largo_sin_signo) huaronverga_cc(
 			salida)) << 16;
-	caso_compacto |= ((entero_largo_sin_signo) huaronverga_compacta_coordenada(
+	caso_compacto |= ((entero_largo_sin_signo) huaronverga_cc(
 			vacio)) << 32;
 
 	return caso_compacto;
@@ -1718,20 +1688,20 @@ static inline void huaronverga_main() {
 
 	ctx = calloc(1, sizeof(huaronverga_ctx));
 	assert_timeout(ctx);
-	memset(ctx, HUARONVERGA_VALOR_INVALIDO, sizeof(huaronverga_ctx));
-	memset(ctx->matrix_rodeada, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO,
+	memset(ctx, HV_VALOR_INVALIDO, sizeof(huaronverga_ctx));
+	memset(ctx->matrix_rodeada, HV_CARACTER_BLOQUE_BLOKEADO,
 			sizeof(ctx->matrix_rodeada));
-	memset(ctx->matrix, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO,
+	memset(ctx->matrix, HV_CARACTER_BLOQUE_BLOKEADO,
 			sizeof(ctx->matrix));
 	for (huaronverga_caso_familiar i = inicial_huaronverga_caso_familiar;
 			i < final_huaronverga_caso_familiar; i++) {
-		for (int j = 0; j < HUARONVERGA_MAX_FILAS; j++) {
-			for (int k = 0; k < HUARONVERGA_MAX_COLUMNAS; k++) {
-				ctx->matrix_chosto_brinco[i][j][k] = HUARONVERGA_VALOR_INVALIDO;
-				ctx->matrix_chosto_minimo[j][k] = HUARONVERGA_VALOR_INVALIDO;
-				ctx->matrix_predecesores[j][k] = (puto_cardinal ) { .coord_x =
-						HUARONVERGA_VALOR_INVALIDO, .coord_y =
-						HUARONVERGA_VALOR_INVALIDO };
+		for (int j = 0; j < HV_MAX_FILAS; j++) {
+			for (int k = 0; k < HV_MAX_COLUMNAS; k++) {
+				ctx->matrix_chosto_brinco[i][j][k] = HV_VALOR_INVALIDO;
+				ctx->matrix_chosto_minimo[j][k] = HV_VALOR_INVALIDO;
+				ctx->matrix_predecesores[j][k] = (pcrd ) { .coord_x =
+						HV_VALOR_INVALIDO, .coord_y =
+						HV_VALOR_INVALIDO };
 			}
 		}
 	}
@@ -1756,12 +1726,12 @@ static inline void huaronverga_main() {
 	ctx->columnas_tam = columnas_tam;
 	ctx->filas_tam = filas_tam;
 
-	hash_map_robin_hood_back_shift_init(tablon, HEAP_SHIT_MAX_NODOS);
+	hmrh_init(tablon, HEAP_SHIT_MAX_NODOS);
 
 	for (int i = 0; i < consultas_tam; i++) {
-		puto_cardinal *cacao = &(puto_cardinal ) { 0 };
-		puto_cardinal *vacio = &(puto_cardinal ) { 0 };
-		puto_cardinal *salida = &(puto_cardinal ) { 0 };
+		pcrd *cacao = &(pcrd ) { 0 };
+		pcrd *vacio = &(pcrd ) { 0 };
+		pcrd *salida = &(pcrd ) { 0 };
 		tipo_dato resu = 0;
 		hm_iter iter = 0;
 		entero_largo resu_cacheado = 0;
@@ -1780,7 +1750,7 @@ static inline void huaronverga_main() {
 		salida->coord_x--;
 		salida->coord_y--;
 
-		iter = hash_map_robin_hood_back_shift_obten(tablon,
+		iter = hmrh_obten(tablon,
 				huaronverga_compacta_caso(cacao, salida, vacio),
 				&resu_cacheado);
 
@@ -1789,29 +1759,29 @@ static inline void huaronverga_main() {
 		} else {
 			bool nuevo = falso;
 			resu = huaronverga_dickstra(ctx, cacao, vacio, salida);
-			hash_map_robin_hood_back_shift_pon(tablon,
+			hmrh_pon(tablon,
 					huaronverga_compacta_caso(cacao, salida, vacio), resu,
 					&nuevo);
 			assert_timeout(nuevo);
 		}
 
-		for (int j = 0; j < HUARONVERGA_MAX_FILAS; j++) {
-			for (int k = 0; k < HUARONVERGA_MAX_COLUMNAS; k++) {
+		for (int j = 0; j < HV_MAX_FILAS; j++) {
+			for (int k = 0; k < HV_MAX_COLUMNAS; k++) {
 				ctx->matrix_chosto_minimo[j][k] =
-				HUARONVERGA_VALOR_INVALIDO;
-				ctx->matrix_predecesores[j][k] = (puto_cardinal ) { .coord_x =
-						HUARONVERGA_VALOR_INVALIDO, .coord_y =
-						HUARONVERGA_VALOR_INVALIDO };
+				HV_VALOR_INVALIDO;
+				ctx->matrix_predecesores[j][k] = (pcrd ) { .coord_x =
+						HV_VALOR_INVALIDO, .coord_y =
+						HV_VALOR_INVALIDO };
 			}
 		}
-		if (resu == HUARONVERGA_VALOR_INVALIDO) {
+		if (resu == HV_VALOR_INVALIDO) {
 			printf("-1\n");
 		} else {
 			printf("%d\n", resu);
 		}
 	}
 
-	hash_map_robin_hood_back_shift_fini(tablon);
+	hmrh_fini(tablon);
 	free(ctx);
 }
 

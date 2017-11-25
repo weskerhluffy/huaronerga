@@ -73,8 +73,8 @@ typedef enum BOOLEANOS {
 
 #endif
 
-#define HV_MAX_LLAVE (200|((200)<<8))
-#define HV_MAX_LLAVE_RODEADA (204|((204)<<8))
+#define HUARONVERGA_MAX_LLAVE (200|((200)<<8))
+#define HUARONVERGA_MAX_LLAVE_RODEADA (204|((204)<<8))
 
 #if 1
 
@@ -552,7 +552,7 @@ static inline void hash_map_robin_hood_back_shift_insertar_nuevo(
 #if 1
 
 #define HEAP_SHIT_MAX_NODOS (204|(204<<8))
-#define HEAP_SHIT_MAX_LLAVES HV_MAX_LLAVE
+#define HEAP_SHIT_MAX_LLAVES HUARONVERGA_MAX_LLAVE
 #define HEAP_SHIT_VALOR_INVALIDO CACA_COMUN_VALOR_INVALIDO
 
 typedef struct heap_shit_nodo {
@@ -1019,8 +1019,8 @@ int hashset_is_member(hashset_t set, void *item) {
 
 #endif
 
-#define HV_VALOR_INVALIDO (CACA_COMUN_VALOR_INVALIDO-10)
-#define HV_INVIABLE (HV_VALOR_INVALIDO-101)
+#define HUARONVERGA_VALOR_INVALIDO (CACA_COMUN_VALOR_INVALIDO-10)
+#define HUARONVERGA_INVIABLE (HUARONVERGA_VALOR_INVALIDO-101)
 
 typedef enum huaronverga_caso_familiar {
 	vertical_huaronverga_caso_familiar = 0,
@@ -1030,7 +1030,7 @@ typedef enum huaronverga_caso_familiar {
 	esq_3_huaronverga_caso_familiar,
 	esq_4_huaronverga_caso_familiar,
 	final_huaronverga_caso_familiar,
-	invalido_huaronverga_caso_familiar = HV_VALOR_INVALIDO
+	invalido_huaronverga_caso_familiar = HUARONVERGA_VALOR_INVALIDO
 } huaronverga_caso_familiar;
 #define inicial_huaronverga_caso_familiar vertical_huaronverga_caso_familiar
 
@@ -1040,23 +1040,23 @@ typedef enum huaronverga_movimientos_decendiente_directo_idx {
 	abajo_huaronverga_movimientos_decendiente_directo_idx,
 	izquierda_huaronverga_movimientos_decendiente_directo_idx,
 	ultimo_huaronverga_movimientos_decendiente_directo_idx,
-	invalido_huaronverga_movimientos_decendiente_directo_idx = HV_VALOR_INVALIDO
+	invalido_huaronverga_movimientos_decendiente_directo_idx = HUARONVERGA_VALOR_INVALIDO
 } huaronverga_movimientos_decendiente_directo_idx;
 #define primero_huaronverga_movimientos_decendiente_directo_idx arriba_huaronverga_movimientos_decendiente_directo_idx
 
-#define HV_MAX_FILAS 200
-#define HV_MAX_COLUMNAS 200
-#define HV_MAX_ELEMENTOS (HV_MAX_FILAS*HV_MAX_COLUMNAS)
-#define HV_MAX_ELEMENTOS_RODEADOS ((HV_MAX_FILAS+4)*(HV_MAX_COLUMNAS+4))
-#define HV_CARACTER_BLOQUE_LIBRE '1'
-#define HV_CARACTER_BLOQUE_BLOKEADO '0'
+#define HUARONVERGA_MAX_FILAS 200
+#define HUARONVERGA_MAX_COLUMNAS 200
+#define HUARONVERGA_MAX_ELEMENTOS (HUARONVERGA_MAX_FILAS*HUARONVERGA_MAX_COLUMNAS)
+#define HUARONVERGA_MAX_ELEMENTOS_RODEADOS ((HUARONVERGA_MAX_FILAS+4)*(HUARONVERGA_MAX_COLUMNAS+4))
+#define HUARONVERGA_CARACTER_BLOQUE_LIBRE '1'
+#define HUARONVERGA_CARACTER_BLOQUE_BLOKEADO '0'
 
 typedef struct huaronverga_ctx {
-	byteme matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS];
-	byteme matrix_rodeada[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4];
-	tipo_dato matrix_chosto_brinco[final_huaronverga_caso_familiar][HV_MAX_FILAS][HV_MAX_COLUMNAS];
-	tipo_dato matrix_chosto_minimo[HV_MAX_FILAS][HV_MAX_COLUMNAS];
-	puto_cardinal matrix_predecesores[HV_MAX_FILAS][HV_MAX_COLUMNAS];
+	byteme matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
+	byteme matrix_rodeada[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4];
+	tipo_dato matrix_chosto_brinco[final_huaronverga_caso_familiar][HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
+	tipo_dato matrix_chosto_minimo[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
+	puto_cardinal matrix_predecesores[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS];
 	tipo_dato chosto_brinco;
 	natural columnas_tam;
 	natural filas_tam;
@@ -1080,10 +1080,10 @@ puto_cardinal movimientos_posible_abuelo[][2] = {
 		[horizontal_huaronverga_caso_familiar ]= { { 0, 1 }, { 0, -1 } },
 		[esq_1_huaronverga_caso_familiar ... final_huaronverga_caso_familiar
 				]= { {
-				HV_VALOR_INVALIDO,
-				HV_VALOR_INVALIDO }, {
-				HV_VALOR_INVALIDO,
-				HV_VALOR_INVALIDO } } };
+				HUARONVERGA_VALOR_INVALIDO,
+				HUARONVERGA_VALOR_INVALIDO }, {
+				HUARONVERGA_VALOR_INVALIDO,
+				HUARONVERGA_VALOR_INVALIDO } } };
 natural movimientos_posible_abuelo_tam[] = { [vertical_huaronverga_caso_familiar
 		]= 2, [horizontal_huaronverga_caso_familiar ]=2,
 		[esq_1_huaronverga_caso_familiar ... final_huaronverga_caso_familiar
@@ -1128,7 +1128,7 @@ static inline tipo_dato huaronverga_compacta_coordenada_rodeada(
 	coord_xy_compacta = puto_cardinal_compacta_a_corto(nodo)
 			& ((tipo_dato) 0xffff);
 
-	assert_timeout(coord_xy_compacta <= HV_MAX_LLAVE_RODEADA);
+	assert_timeout(coord_xy_compacta <= HUARONVERGA_MAX_LLAVE_RODEADA);
 
 	return coord_xy_compacta;
 }
@@ -1211,7 +1211,7 @@ static inline void huaronverga_genera_vecino_en_idx(puto_cardinal *origen,
 static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
 		puto_cardinal *puto) {
 	bool valido = verdadero;
-	if (puto->coord_x == HV_VALOR_INVALIDO || puto->coord_y == HV_VALOR_INVALIDO
+	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO || puto->coord_y == HUARONVERGA_VALOR_INVALIDO
 			|| puto->coord_x < 0 || puto->coord_y < 0
 			|| puto->coord_x >= ctx->filas_tam
 			|| puto->coord_y >= ctx->columnas_tam) {
@@ -1223,7 +1223,7 @@ static inline bool huaronverga_valida_puto_cardinal(huaronverga_ctx *ctx,
 static inline bool huaronverga_valida_puto_cardinal_rodeado(
 		huaronverga_ctx *ctx, puto_cardinal *puto) {
 	bool valido = verdadero;
-	if (puto->coord_x == HV_VALOR_INVALIDO || puto->coord_y == HV_VALOR_INVALIDO
+	if (puto->coord_x == HUARONVERGA_VALOR_INVALIDO || puto->coord_y == HUARONVERGA_VALOR_INVALIDO
 			|| puto->coord_x < 0 || puto->coord_y < 0
 			|| puto->coord_x >= ctx->filas_tam + 4
 			|| puto->coord_y >= ctx->columnas_tam + 4) {
@@ -1236,7 +1236,7 @@ static inline bool huaronverga_valida_puto_cardinal_valor_matrix(
 		huaronverga_ctx *ctx, puto_cardinal *puto) {
 	bool valido = verdadero;
 	if (!huaronverga_valida_puto_cardinal(ctx, puto) ||
-	huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HV_CARACTER_BLOQUE_LIBRE
+	huaronverga_obten_valor_en_coord(ctx->matrix,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
 	) {
 		valido = falso;
 	}
@@ -1247,7 +1247,7 @@ static inline bool huaronverga_valida_puto_cardinal_valor_matrix_rodeada(
 		huaronverga_ctx *ctx, puto_cardinal *puto) {
 	bool valido = verdadero;
 	if (!huaronverga_valida_puto_cardinal_rodeado(ctx, puto) ||
-	huaronverga_obten_valor_en_coord(ctx->matrix_rodeada,puto)!=HV_CARACTER_BLOQUE_LIBRE
+	huaronverga_obten_valor_en_coord(ctx->matrix_rodeada,puto)!=HUARONVERGA_CARACTER_BLOQUE_LIBRE
 	) {
 		valido = falso;
 	}
@@ -1276,19 +1276,19 @@ static inline natural huaronverga_genera_vecinos_validos(huaronverga_ctx *ctx,
 }
 
 static inline void huaronverga_pon_valor_en_coord_stack_byteme(
-		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
 		puto_cardinal *puto, byteme valor) {
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
 
 static inline void huaronverga_pon_valor_en_coord_stack_puto_cardinal(
-		puto_cardinal matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS],
+		puto_cardinal matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS],
 		puto_cardinal *puto, puto_cardinal *valor) {
 	matrix[puto->coord_x][puto->coord_y] = *valor;
 }
 
 static inline void huaronverga_pon_valor_en_coord_stack_natural(
-		natural matrix[HV_MAX_FILAS][HV_MAX_COLUMNAS], puto_cardinal *puto,
+		natural matrix[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS], puto_cardinal *puto,
 		natural valor) {
 	matrix[puto->coord_x][puto->coord_y] = valor;
 }
@@ -1298,15 +1298,15 @@ typedef struct huaronverga_chosto_bfs_elem {
 	natural chosto;
 } huaronverga_chosto_bfs_elem;
 
-huaronverga_chosto_bfs_elem chostos_queue_elems[HV_MAX_ELEMENTOS_RODEADOS + 1] =
-		{ HV_VALOR_INVALIDO };
+huaronverga_chosto_bfs_elem chostos_queue_elems[HUARONVERGA_MAX_ELEMENTOS_RODEADOS + 1] =
+		{ HUARONVERGA_VALOR_INVALIDO };
 
-natural chostos_bfs[HV_MAX_LLAVE_RODEADA + 1] = {
-HV_VALOR_INVALIDO };
+natural chostos_bfs[HUARONVERGA_MAX_LLAVE_RODEADA + 1] = {
+HUARONVERGA_VALOR_INVALIDO };
 
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 		huaronverga_ctx *ctx,
-		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
 		puto_cardinal *inicio, puto_cardinal *fin,
 		huaronverga_chosto_bfs_elem *chostos_queue_elems, natural *chostos,
 		hashset_t set) {
@@ -1328,12 +1328,12 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 			inicio_rodeado)
 			|| !huaronverga_valida_puto_cardinal_valor_matrix_rodeada(ctx,
 					fin_rodeado)) {
-		return HV_VALOR_INVALIDO;
+		return HUARONVERGA_VALOR_INVALIDO;
 	}
 
-	bvctx = bitch_init(HV_MAX_LLAVE_RODEADA);
+	bvctx = bitch_init(HUARONVERGA_MAX_LLAVE_RODEADA);
 
-	kha = queue_construye(HV_MAX_FILAS * HV_MAX_COLUMNAS);
+	kha = queue_construye(HUARONVERGA_MAX_FILAS * HUARONVERGA_MAX_COLUMNAS);
 
 	huaronverga_chosto_bfs_elem *elem_inicial = chostos_queue_elems
 			+ putos_tmp_cnt++;
@@ -1343,7 +1343,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 	chostos[huaronverga_compacta_coordenada_rodeada(inicio_rodeado)] = 0;
 	chostos[huaronverga_compacta_coordenada_rodeada(fin_rodeado)] =
-	HV_VALOR_INVALIDO;
+	HUARONVERGA_VALOR_INVALIDO;
 
 	while (!queue_vacia(kha)) {
 		huaronverga_chosto_bfs_elem *act_elem = queue_decula(kha);
@@ -1410,7 +1410,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud(
 
 static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud_brincando(
 		huaronverga_ctx *ctx,
-		byteme matrix[HV_MAX_FILAS + 4][HV_MAX_COLUMNAS + 4],
+		byteme matrix[HUARONVERGA_MAX_FILAS + 4][HUARONVERGA_MAX_COLUMNAS + 4],
 		puto_cardinal *inicio, puto_cardinal *invalido, puto_cardinal *fin,
 		huaronverga_chosto_bfs_elem *chostos_queue_elems, natural *chostos,
 		hashset_t set) {
@@ -1424,7 +1424,7 @@ static inline tipo_dato huaronverga_chosto_por_busqueda_en_amplitud_brincando(
 
 	valor_ant = huaronverga_obten_valor_en_coord(matrix, invalido_rodeado);
 	huaronverga_pon_valor_en_coord_stack_byteme(matrix, invalido_rodeado,
-	HV_CARACTER_BLOQUE_BLOKEADO);
+	HUARONVERGA_CARACTER_BLOQUE_BLOKEADO);
 
 	chosto = huaronverga_chosto_por_busqueda_en_amplitud(ctx, matrix, inicio,
 			fin, chostos_queue_elems, chostos, set);
@@ -1447,7 +1447,7 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 	natural vecinos_cnt = 0;
 	puto_cardinal *padre_rodeado = huaronverga_genera_puto_rodeado_local(padre);
 	puto_cardinal *mas_abajo_rodeado = NULL;
-	tipo_dato (*matrix_chosto_brinco)[final_huaronverga_caso_familiar][HV_MAX_FILAS][HV_MAX_COLUMNAS] =
+	tipo_dato (*matrix_chosto_brinco)[final_huaronverga_caso_familiar][HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
 			&ctx->matrix_chosto_brinco;
 	huaronverga_caso_familiar cacaso = hvargs->cacaso;
 	hashset_t set = hashset_create();
@@ -1467,7 +1467,7 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 	int i = 0;
 	for (i = 0; i < vecinos_cnt; i++) {
 		puto_cardinal *vecino_act = vecinos + i;
-		tipo_dato chosto_act = HV_VALOR_INVALIDO;
+		tipo_dato chosto_act = HUARONVERGA_VALOR_INVALIDO;
 		tipo_dato coord_compacta = 0;
 
 		coord_compacta = huaronverga_compacta_coordenada_rodeada(vecino_act);
@@ -1476,7 +1476,7 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 				vecino_act) && vecino_act->coord_xy == padre_rodeado->coord_xy) {
 			chosto_act = 0;
 		} else {
-			chosto_act = HV_VALOR_INVALIDO;
+			chosto_act = HUARONVERGA_VALOR_INVALIDO;
 		}
 		chostos_bfs[coord_compacta] = chosto_act;
 		hashset_add(set, (void *) (long long) coord_compacta);
@@ -1582,7 +1582,7 @@ static inline tipo_dato huaronverga_calcula_chosto_brinco(huaronverga_ctx *ctx,
 			}
 
 			if (cacaso_act != invalido_huaronverga_caso_familiar) {
-				if (chosto_act == HV_VALOR_INVALIDO
+				if (chosto_act == HUARONVERGA_VALOR_INVALIDO
 						|| chosto_act > ctx->chosto_brinco) {
 					chosto_act = ctx->chosto_brinco;
 				}
@@ -1620,7 +1620,7 @@ static inline tipo_dato huaronverga_obten_chosto_brinco(huaronverga_ctx *ctx,
 	res =
 			ctx->matrix_chosto_brinco[cacaso][mas_abajo->coord_x][mas_abajo->coord_y];
 
-	if (res == HV_VALOR_INVALIDO) {
+	if (res == HUARONVERGA_VALOR_INVALIDO) {
 		res = huaronverga_calcula_chosto_brinco(ctx, hvargs);
 		ctx->matrix_chosto_brinco[cacaso][mas_abajo->coord_x][mas_abajo->coord_y] =
 				res;
@@ -1647,8 +1647,8 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 				padre->coord_x + mov_act->coord_x, .coord_y =
 				padre->coord_y + mov_act->coord_y };
 
-		assert_timeout(posible_abuelo->coord_x!=HV_VALOR_INVALIDO);
-		assert_timeout(posible_abuelo->coord_y!=HV_VALOR_INVALIDO);
+		assert_timeout(posible_abuelo->coord_x!=HUARONVERGA_VALOR_INVALIDO);
+		assert_timeout(posible_abuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
 
 		if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx,
 				posible_abuelo)) {
@@ -1658,7 +1658,7 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 		chosto_posible_abuelo = huaronverga_obten_valor_en_coord(
 				ctx->matrix_chosto_minimo, posible_abuelo);
 
-		if (chosto_posible_abuelo == HV_VALOR_INVALIDO) {
+		if (chosto_posible_abuelo == HUARONVERGA_VALOR_INVALIDO) {
 			continue;
 		}
 
@@ -1667,13 +1667,13 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 
 		if (huaronverga_valida_puto_cardinal_valor_matrix(ctx,
 				posible_bisabuelo) && posible_bisabuelo->coord_xy != padre->coord_xy) {
-			assert_timeout(posible_bisabuelo->coord_y!=HV_VALOR_INVALIDO);
+			assert_timeout(posible_bisabuelo->coord_y!=HUARONVERGA_VALOR_INVALIDO);
 
 			chosto_posible_bisabuelo_padre = huaronverga_obten_chosto_brinco(
 					ctx, &(huaronverga_args ) { .cacaso = cacaso, .abuelo =
 									posible_bisabuelo, .padre = posible_abuelo,
 									.hijo = padre });
-			assert_timeout(chosto_posible_bisabuelo_padre!=HV_VALOR_INVALIDO);
+			assert_timeout(chosto_posible_bisabuelo_padre!=HUARONVERGA_VALOR_INVALIDO);
 
 			chosto_posible_bisabuelo_padre++;
 		}
@@ -1682,7 +1682,7 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 				&(huaronverga_args ) { .cacaso = cacaso, .abuelo =
 								posible_abuelo, .padre = padre, .hijo = hijo });
 
-		assert_timeout(chosto_posible_abuelo_hijo!=HV_VALOR_INVALIDO);
+		assert_timeout(chosto_posible_abuelo_hijo!=HUARONVERGA_VALOR_INVALIDO);
 		chosto_posible_abuelo_hijo++;
 
 		chosto_hijo = chosto_posible_abuelo + chosto_posible_bisabuelo_padre
@@ -1698,15 +1698,15 @@ static inline tipo_dato huaronverga_mejora_chosto_hijo(huaronverga_ctx *ctx,
 
 static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 		puto_cardinal *cacao, puto_cardinal *vacio, puto_cardinal *salida) {
-	puto_cardinal (*matrix_predecesores)[HV_MAX_FILAS][HV_MAX_COLUMNAS] =
+	puto_cardinal (*matrix_predecesores)[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
 			&ctx->matrix_predecesores;
-	tipo_dato (*matrix_chosto_minimo)[HV_MAX_FILAS][HV_MAX_COLUMNAS] =
+	tipo_dato (*matrix_chosto_minimo)[HUARONVERGA_MAX_FILAS][HUARONVERGA_MAX_COLUMNAS] =
 			&ctx->matrix_chosto_minimo;
 	puto_cardinal vecinos_tmp[ultimo_huaronverga_movimientos_decendiente_directo_idx] =
 			{ 0 };
 	natural vecinos_tmp_cnt = 0;
 	bool encontrada_salida = falso;
-	tipo_dato chosto_final = HV_VALOR_INVALIDO;
+	tipo_dato chosto_final = HUARONVERGA_VALOR_INVALIDO;
 
 	puto_cardinal *putos_tmp = NULL;
 	natural putos_tmp_cnt = 0;
@@ -1722,13 +1722,13 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 	if (!huaronverga_valida_puto_cardinal_valor_matrix(ctx, cacao)
 			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, vacio)
 			|| !huaronverga_valida_puto_cardinal_valor_matrix(ctx, salida)) {
-		return HV_VALOR_INVALIDO;
+		return HUARONVERGA_VALOR_INVALIDO;
 	}
 
-	putos_tmp = calloc(HV_MAX_ELEMENTOS << 1, sizeof(putos_tmp));
+	putos_tmp = calloc(HUARONVERGA_MAX_ELEMENTOS << 1, sizeof(putos_tmp));
 	assert_timeout(putos_tmp);
 
-	bvctx = bitch_init(HV_MAX_LLAVE);
+	bvctx = bitch_init(HUARONVERGA_MAX_LLAVE);
 
 	cola_prioridad = heap_shit_init(verdadero);
 
@@ -1737,9 +1737,9 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			puto_cardinal *puto_act = putos_tmp + putos_tmp_cnt++;
 			puto_act->coord_y = j;
 			puto_act->coord_x = i;
-			if (huaronverga_obten_valor_en_coord(ctx->matrix,puto_act)==HV_CARACTER_BLOQUE_LIBRE && huaronverga_compacta_coordenada(puto_act)!=huaronverga_compacta_coordenada(cacao)) {
+			if (huaronverga_obten_valor_en_coord(ctx->matrix,puto_act)==HUARONVERGA_CARACTER_BLOQUE_LIBRE && huaronverga_compacta_coordenada(puto_act)!=huaronverga_compacta_coordenada(cacao)) {
 				heap_shit_insert(cola_prioridad, &(heap_shit_nodo ) {.prioridad =
-					HV_VALOR_INVALIDO, .llave =
+					HUARONVERGA_VALOR_INVALIDO, .llave =
 					huaronverga_compacta_coordenada(puto_act), .valor =
 					puto_act});
 			}
@@ -1789,7 +1789,7 @@ static inline tipo_dato huaronverga_dickstra(huaronverga_ctx *ctx,
 			encontrada_salida = verdadero;
 			break;
 		}
-		if (chosto_padre == HV_VALOR_INVALIDO) {
+		if (chosto_padre == HUARONVERGA_VALOR_INVALIDO) {
 			break;
 		}
 
@@ -1877,19 +1877,19 @@ static inline void huaronverga_main() {
 
 	ctx = calloc(1, sizeof(huaronverga_ctx));
 	assert_timeout(ctx);
-	memset(ctx, HV_VALOR_INVALIDO, sizeof(huaronverga_ctx));
-	memset(ctx->matrix_rodeada, HV_CARACTER_BLOQUE_BLOKEADO,
+	memset(ctx, HUARONVERGA_VALOR_INVALIDO, sizeof(huaronverga_ctx));
+	memset(ctx->matrix_rodeada, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO,
 			sizeof(ctx->matrix_rodeada));
-	memset(ctx->matrix, HV_CARACTER_BLOQUE_BLOKEADO, sizeof(ctx->matrix));
+	memset(ctx->matrix, HUARONVERGA_CARACTER_BLOQUE_BLOKEADO, sizeof(ctx->matrix));
 	for (huaronverga_caso_familiar i = inicial_huaronverga_caso_familiar;
 			i < final_huaronverga_caso_familiar; i++) {
-		for (int j = 0; j < HV_MAX_FILAS; j++) {
-			for (int k = 0; k < HV_MAX_COLUMNAS; k++) {
-				ctx->matrix_chosto_brinco[i][j][k] = HV_VALOR_INVALIDO;
-				ctx->matrix_chosto_minimo[j][k] = HV_VALOR_INVALIDO;
+		for (int j = 0; j < HUARONVERGA_MAX_FILAS; j++) {
+			for (int k = 0; k < HUARONVERGA_MAX_COLUMNAS; k++) {
+				ctx->matrix_chosto_brinco[i][j][k] = HUARONVERGA_VALOR_INVALIDO;
+				ctx->matrix_chosto_minimo[j][k] = HUARONVERGA_VALOR_INVALIDO;
 				ctx->matrix_predecesores[j][k] = (puto_cardinal ) { .coord_x =
-						HV_VALOR_INVALIDO, .coord_y =
-						HV_VALOR_INVALIDO };
+						HUARONVERGA_VALOR_INVALIDO, .coord_y =
+						HUARONVERGA_VALOR_INVALIDO };
 			}
 		}
 	}
@@ -1943,7 +1943,7 @@ static inline void huaronverga_main() {
 				&resu_cacheado);
 
 		if (iter != HASH_MAP_VALOR_INVALIDO) {
-			assert_timeout(resu_cacheado!=HV_VALOR_INVALIDO);
+			assert_timeout(resu_cacheado!=HUARONVERGA_VALOR_INVALIDO);
 			resu = resu_cacheado;
 		} else {
 			bool nuevo=falso;
@@ -1952,16 +1952,16 @@ static inline void huaronverga_main() {
 			assert_timeout(nuevo);
 		}
 
-		for (int j = 0; j < HV_MAX_FILAS; j++) {
-			for (int k = 0; k < HV_MAX_COLUMNAS; k++) {
+		for (int j = 0; j < HUARONVERGA_MAX_FILAS; j++) {
+			for (int k = 0; k < HUARONVERGA_MAX_COLUMNAS; k++) {
 				ctx->matrix_chosto_minimo[j][k] =
-				HV_VALOR_INVALIDO;
+				HUARONVERGA_VALOR_INVALIDO;
 				ctx->matrix_predecesores[j][k] = (puto_cardinal ) { .coord_x =
-						HV_VALOR_INVALIDO, .coord_y =
-						HV_VALOR_INVALIDO };
+						HUARONVERGA_VALOR_INVALIDO, .coord_y =
+						HUARONVERGA_VALOR_INVALIDO };
 			}
 		}
-		if (resu == HV_VALOR_INVALIDO) {
+		if (resu == HUARONVERGA_VALOR_INVALIDO) {
 			printf("-1\n");
 		} else {
 			printf("%d\n", resu);

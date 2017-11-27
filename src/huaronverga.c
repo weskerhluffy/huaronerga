@@ -737,6 +737,7 @@ static inline void *heap_shit_borra_torpe(heap_shit *heap_ctx) {
 	}
 }
 
+// XXX: https://pastebin.com/kkZn123m
 static inline void heap_shit_sube_para_arriba(heap_shit *ctx,
 		tipo_dato idx_a_subir
 #ifdef HEAP_SHIT_MAPEO_COMPLETO
